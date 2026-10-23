@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="EnglishStudy">
+<meta name="theme-color" content="#eef1f6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>EnglishStudy · 英语闪卡</title>
+<style>*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:#eef1f6;color:#16213a;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+}
+.app{max-width:540px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+.screen{flex:1;padding:14px 16px 96px}
+.hidden{display:none!important}
+
+/* ---------- generic ---------- */
+.h1{font-size:24px;font-weight:700;letter-spacing:-.3px;margin:6px 0 2px}
+.sub{font-size:13px;color:#8492a8;margin:0 0 14px}
+.card{background:#fff;border-radius:20px;padding:18px;box-shadow:0 6px 20px rgba(23,43,77,.07)}
+.card+.card{margin-top:12px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.muted{color:#8492a8;font-size:12px}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;background:#eef2f9;color:#4a5b76;font-size:11px;font-weight:600}
+.pill.green{background:#e6f6ec;color:#1c7a45}
+.pill.amber{background:#fdf1e0;color:#9a6212}
+.pill.blue{background:#e8effc;color:#2e5496}
+
+/* ---------- top rank ---------- */
+.rankbar{background:linear-gradient(135deg,#22355c,#3a5a94 70%,#4d73b5);color:#fff;border-radius:20px;padding:16px 18px;box-shadow:0 10px 26px rgba(31,56,100,.25)}
+.rankbar .rl{font-size:12px;opacity:.72;letter-spacing:.4px}
+.rankbar .rn{font-size:26px;font-weight:700;margin:1px 0 8px}
+.rankbar .st{font-size:13px;opacity:.9}
+.track{height:7px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden;margin-top:9px}
+.track>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ffd479,#ffb648)}
+
+/* ---------- today ---------- */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.tile{background:#fff;border-radius:18px;padding:14px;box-shadow:0 4px 14px rgba(23,43,77,.06)}
+.tile .n{font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.1}
+.tile .l{font-size:12px;color:#8492a8;margin-top:2px}
+.btn{display:block;width:100%;border:0;border-radius:16px;padding:16px;font-size:16px;font-weight:600;
+  font-family:inherit;background:#1f3864;color:#fff;cursor:pointer;transition:transform .12s ease,opacity .12s}
+.btn:active{transform:scale(.985);opacity:.92}
+.btn.alt{background:#fff;color:#1f3864;box-shadow:inset 0 0 0 1.5px #dbe3f2}
+.btn.sm{padding:11px;font-size:14px;border-radius:13px;width:auto}
+.btn:disabled{opacity:.45}
+.btnrow{display:flex;gap:10px;margin-top:12px}
+
+/* ---------- flashcard ---------- */
+.fc-top{display:flex;align-items:center;gap:12px;padding:4px 2px 10px}
+.fc-top .x{width:34px;height:34px;border-radius:12px;border:0;background:#e4e9f2;font-size:16px;cursor:pointer}
+.fc-prog{flex:1;height:6px;border-radius:99px;background:#dde4ee;overflow:hidden}
+.fc-prog>i{display:block;height:100%;background:#4d73b5;border-radius:99px;transition:width .25s}
+.fc-count{font-size:12px;color:#6b7a91;font-variant-numeric:tabular-nums;min-width:46px;text-align:right}
+
+.stage{position:relative;margin-top:6px;min-height:0}
+.fcard{background:#fff;border-radius:24px;padding:26px 22px;box-shadow:0 14px 34px rgba(23,43,77,.12);
+  min-height:300px;display:flex;flex-direction:column;justify-content:center;position:relative;
+  touch-action:pan-y;will-change:transform;transition:transform .28s cubic-bezier(.2,.8,.3,1)}
+.fcard.dragging{transition:none}
+.fcard.w{min-height:250px}
+.fcard .en{font-size:26px;line-height:1.34;font-weight:650;letter-spacing:-.2px}
+.fcard .en.s{font-size:22px}
+.fcard .en.xs{font-size:19px}
+.fcard .meta{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fcard .hint{margin-top:18px;font-size:12px;color:#9aa7bb;line-height:1.6}
+.swipe-tag{position:absolute;top:20px;font-size:22px;font-weight:800;padding:4px 12px;border-radius:12px;opacity:0}
+.swipe-tag.r{right:18px;color:#1c7a45;border:2px solid #1c7a45;transform:rotate(8deg)}
+.swipe-tag.l{left:18px;color:#c0392b;border:2px solid #c0392b;transform:rotate(-8deg)}
+
+.back .cn{font-size:19px;font-weight:600;margin:2px 0 12px;color:#1f3864}
+.back .note{background:#f5f8fd;border-left:3px solid #b9cdec;border-radius:10px;padding:10px 12px;
+  font-size:13px;line-height:1.6;color:#3f4f68}
+.back .wlist{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.witem{display:flex;align-items:center;gap:8px;padding:9px 11px;background:#f7f9fc;border-radius:12px;font-size:14px}
+.witem .w{font-weight:650}
+.witem .p{color:#8492a8;font-size:12px}
+.witem .c{color:#4a5b76;font-size:12px;margin-left:auto;text-align:right;max-width:45%}
+.audioRow{display:flex;gap:8px;margin-top:14px}
+.audioRow button{flex:1;border:0;border-radius:12px;padding:11px 6px;background:#eef3fb;color:#1f3864;
+  font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.audioRow button:active{opacity:.75}
+.audioRow button.rec{background:#fdecea;color:#b03a2e}
+
+.acts{display:flex;gap:10px;margin-top:14px}
+.acts button{flex:1;border:0;border-radius:16px;height:56px;font-size:15px;font-weight:650;font-family:inherit;cursor:pointer}
+.acts .no{background:#fdecea;color:#b03a2e}
+.acts .mid{flex:.85;background:#eef3fb;color:#1f3864;font-size:14px}
+.acts .ok{background:#e6f6ec;color:#1c7a45}
+.acts button:active{transform:scale(.98)}
+
+/* ---------- recording ---------- */
+.recwrap{margin-top:12px;border-top:1px dashed #dde4ee;padding-top:12px}
+.rectimer{font-variant-numeric:tabular-nums;font-weight:600;color:#b03a2e}
+.score{margin-top:10px}
+.score input[type=range]{width:100%;accent-color:#1f3864}
+.score .sv{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- lists ---------- */
+.list{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 14px rgba(23,43,77,.06)}
+.li{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid #f0f3f8;font-size:14px}
+.li:last-child{border-bottom:0}
+.li .main{flex:1;min-width:0}
+.li .t{font-weight:600}
+.li .d{font-size:12px;color:#8492a8;margin-top:2px}
+.li .x{border:0;background:#f6ecec;color:#b03a2e;border-radius:9px;width:30px;height:30px;font-size:14px;cursor:pointer}
+.empty{text-align:center;color:#93a0b4;font-size:13px;padding:30px 10px;line-height:1.7}
+
+/* ---------- tabs ---------- */
+.tabs{position:fixed;bottom:0;left:0;right:0;max-width:540px;margin:0 auto;display:flex;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid #e2e8f1;
+  padding-bottom:env(safe-area-inset-bottom);z-index:20}
+.tab{flex:1;position:relative;border:0;background:none;padding:9px 0 8px;font-family:inherit;font-size:11px;color:#8b98ac;cursor:pointer}
+.tab i{display:block;font-size:20px;font-style:normal;line-height:1.15;filter:grayscale(1);opacity:.65}
+.tab.on{color:#1f3864;font-weight:650}
+.tab.on i{filter:none;opacity:1}
+.tab .badge{position:absolute;transform:translate(14px,-4px);background:#e0574d;color:#fff;border-radius:99px;
+  font-size:9px;padding:1px 5px;font-weight:700}
+
+/* ---------- toast / sheet ---------- */
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:rgba(28,40,64,.94);color:#fff;
+  padding:10px 16px;border-radius:14px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:60;max-width:80%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.sheet-mask{position:fixed;inset:0;background:rgba(16,24,40,.42);opacity:0;pointer-events:none;transition:opacity .22s;z-index:40}
+.sheet-mask.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:540px;margin:0 auto;background:#fff;
+  border-radius:22px 22px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));
+  transform:translateY(102%);transition:transform .26s cubic-bezier(.2,.8,.3,1);z-index:50;max-height:86dvh;overflow:auto}
+.sheet.show{transform:translateY(0)}
+.sheet h3{margin:2px 0 10px;font-size:17px}
+
+/* ---------- test ---------- */
+.testcard{background:#fff;border-radius:22px;padding:34px 22px;text-align:center;box-shadow:0 10px 30px rgba(23,43,77,.1)}
+.testcard .w{font-size:32px;font-weight:700;letter-spacing:-.4px}
+.testcard .l{font-size:12px;color:#8492a8;margin-top:8px}
+.big2{display:flex;gap:12px;margin-top:16px}
+.big2 button{flex:1;height:64px;border:0;border-radius:18px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+.big2 .no{background:#fdecea;color:#b03a2e}
+.big2 .yes{background:#e6f6ec;color:#1c7a45}
+
+/* ---------- misc ---------- */
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:11px 0;border-bottom:1px solid #f0f3f8}
+.kv:last-child{border-bottom:0}
+.kv .k{color:#6b7a91}
+.kv .v{font-weight:600}
+.switch{width:48px;height:29px;border-radius:99px;background:#d4dbe6;position:relative;transition:background .18s;border:0;cursor:pointer}
+.switch.on{background:#2f6b46}
+.switch>i{position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:99px;background:#fff;transition:left .18s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on>i{left:22px}
+.seg{display:flex;background:#eaeef5;border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;padding:8px;border-radius:9px;font-size:13px;font-family:inherit;color:#5b6a83;cursor:pointer;font-weight:600}
+.seg button.on{background:#fff;color:#1f3864;box-shadow:0 1px 4px rgba(23,43,77,.12)}
+.errbar{position:fixed;top:0;left:0;right:0;background:#b03a2e;color:#fff;font-size:12px;padding:6px 10px;z-index:99}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+<div class="sheet-mask" id="sheetMask"></div>
+<script>var PACKS = {"L1":[{"id":"l1-01","difficulty":"L1","version":1,"en":"How are you?","cn":"你好吗？","note":"日常问候。are 在这里弱读成 /ə/，整句读作 /haʊ ə juː/，不要逐字重读。","sentenceAudioBase64":"","wordList":[{"word":"how","phonetic":"/haʊ/","cn":"怎样，如何","sentence":["How old are you?"],"audioBase64":""},{"word":"you","phonetic":"/juː/","cn":"你；你们","sentence":["You are great."],"audioBase64":""}]},{"id":"l1-02","difficulty":"L1","version":1,"en":"I am fine, thank you.","cn":"我很好，谢谢。","note":"am 弱读成 /əm/；fine 的尾音 n 很轻，thank 的 th 咬舌尖。","sentenceAudioBase64":"","wordList":[{"word":"fine","phonetic":"/faɪn/","cn":"好的；健康的","sentence":["I feel fine today."],"audioBase64":""},{"word":"thank","phonetic":"/θæŋk/","cn":"感谢","sentence":["Thank you for your help."],"audioBase64":""}]},{"id":"l1-03","difficulty":"L1","version":1,"en":"What is your name?","cn":"你叫什么名字？","note":"What is 连读成 /wɒtɪz/，your 弱读成 /jə/。","sentenceAudioBase64":"","wordList":[{"word":"what","phonetic":"/wɒt/","cn":"什么","sentence":["What is this?"],"audioBase64":""},{"word":"name","phonetic":"/neɪm/","cn":"名字","sentence":["My name is Lucy."],"audioBase64":""}]},{"id":"l1-04","difficulty":"L1","version":1,"en":"My name is Lucy.","cn":"我叫露西。","note":"name is 连读成 /neɪmɪz/，is 不要重读。","sentenceAudioBase64":"","wordList":[{"word":"my","phonetic":"/maɪ/","cn":"我的","sentence":["This is my book."],"audioBase64":""},{"word":"name","phonetic":"/neɪm/","cn":"名字","sentence":["What is your name?"],"audioBase64":""}]},{"id":"l1-05","difficulty":"L1","version":1,"en":"Nice to meet you.","cn":"很高兴认识你。","note":"meet you 连读成 /miːtʃu/，to 弱读成 /tə/。","sentenceAudioBase64":"","wordList":[{"word":"nice","phonetic":"/naɪs/","cn":"好的；友好的","sentence":["Have a nice day."],"audioBase64":""},{"word":"meet","phonetic":"/miːt/","cn":"见面","sentence":["Let's meet at six."],"audioBase64":""}]},{"id":"l1-06","difficulty":"L1","version":1,"en":"This is my book.","cn":"这是我的书。","note":"This is 连读成 /ðɪsɪz/；this 的 th 咬舌尖。","sentenceAudioBase64":"","wordList":[{"word":"this","phonetic":"/ðɪs/","cn":"这个","sentence":["This is my cat."],"audioBase64":""},{"word":"book","phonetic":"/bʊk/","cn":"书","sentence":["I read a book every day."],"audioBase64":""}]},{"id":"l1-07","difficulty":"L1","version":1,"en":"Yes, I like cats.","cn":"是的，我喜欢猫。","note":"like 结尾的 k 轻吐气，cats 的 ts 短促。","sentenceAudioBase64":"","wordList":[{"word":"yes","phonetic":"/jes/","cn":"是的","sentence":["Yes, I am ready."],"audioBase64":""},{"word":"like","phonetic":"/laɪk/","cn":"喜欢","sentence":["I like this song."],"audioBase64":""},{"word":"cat","phonetic":"/kæt/","cn":"猫","sentence":["The cat is sleeping."],"audioBase64":""}]},{"id":"l1-08","difficulty":"L1","version":1,"en":"No, I don't have a dog.","cn":"不，我没有狗。","note":"don't have 连读成 /dəʊntəv/，a 弱读成 /ə/。","sentenceAudioBase64":"","wordList":[{"word":"no","phonetic":"/nəʊ/","cn":"不；没有","sentence":["No, thank you."],"audioBase64":""},{"word":"have","phonetic":"/hæv/","cn":"有","sentence":["I have two brothers."],"audioBase64":""},{"word":"dog","phonetic":"/dɒɡ/","cn":"狗","sentence":["My dog is very friendly."],"audioBase64":""}]},{"id":"l1-09","difficulty":"L1","version":1,"en":"Hello, good morning!","cn":"你好，早上好！","note":"Hello 重音在第二音节 /həˈləʊ/；good 的 d 几乎不发音。","sentenceAudioBase64":"","wordList":[{"word":"hello","phonetic":"/həˈləʊ/","cn":"你好","sentence":["Hello, nice to meet you."],"audioBase64":""},{"word":"good","phonetic":"/ɡʊd/","cn":"好的","sentence":["This is a good idea."],"audioBase64":""},{"word":"morning","phonetic":"/ˈmɔːnɪŋ/","cn":"早晨；上午","sentence":["I run every morning."],"audioBase64":""}]},{"id":"l1-10","difficulty":"L1","version":1,"en":"I have two brothers.","cn":"我有两个兄弟。","note":"have 弱读成 /həv/；two 的 t 要送气但别太重。","sentenceAudioBase64":"","wordList":[{"word":"two","phonetic":"/tuː/","cn":"二；两个","sentence":["I need two tickets."],"audioBase64":""},{"word":"brother","phonetic":"/ˈbrʌðə/","cn":"兄弟","sentence":["My brother is a teacher."],"audioBase64":""}]},{"id":"l1-11","difficulty":"L1","version":1,"en":"She is my friend.","cn":"她是我的朋友。","note":"She is 连读成 /ʃiːz/；friend 只有一个音节 /frend/。","sentenceAudioBase64":"","wordList":[{"word":"she","phonetic":"/ʃiː/","cn":"她","sentence":["She works in a shop."],"audioBase64":""},{"word":"friend","phonetic":"/frend/","cn":"朋友","sentence":["He is my best friend."],"audioBase64":""}]},{"id":"l1-12","difficulty":"L1","version":1,"en":"Where are you from?","cn":"你来自哪里？","note":"Where are 连读成 /weərə/，from 弱读成 /frəm/。","sentenceAudioBase64":"","wordList":[{"word":"where","phonetic":"/weə/","cn":"哪里","sentence":["Where is the station?"],"audioBase64":""},{"word":"from","phonetic":"/frɒm/","cn":"来自；从","sentence":["I am from China."],"audioBase64":""}]},{"id":"l1-13","difficulty":"L1","version":1,"en":"I am from China.","cn":"我来自中国。","note":"China 重音在第一音节 /ˈtʃaɪnə/，结尾的 a 是弱读的 /ə/。","sentenceAudioBase64":"","wordList":[{"word":"China","phonetic":"/ˈtʃaɪnə/","cn":"中国","sentence":["China is a big country."],"audioBase64":""},{"word":"from","phonetic":"/frɒm/","cn":"来自；从","sentence":["This gift is from my sister."],"audioBase64":""}]},{"id":"l1-14","difficulty":"L1","version":1,"en":"Can you help me, please?","cn":"你能帮我一下吗？","note":"Can you 连读成 /kənju/；help me 的 p 不完全爆破。","sentenceAudioBase64":"","wordList":[{"word":"can","phonetic":"/kæn/","cn":"能；可以","sentence":["I can swim."],"audioBase64":""},{"word":"help","phonetic":"/help/","cn":"帮助","sentence":["Thanks for your help."],"audioBase64":""},{"word":"please","phonetic":"/pliːz/","cn":"请","sentence":["Please sit down."],"audioBase64":""}]},{"id":"l1-15","difficulty":"L1","version":1,"en":"I don't understand.","cn":"我不明白。","note":"don't 的 t 不发音；understand 重音在最后 /ˌʌndəˈstænd/。","sentenceAudioBase64":"","wordList":[{"word":"understand","phonetic":"/ˌʌndəˈstænd/","cn":"理解；明白","sentence":["I understand the question."],"audioBase64":""},{"word":"don't","phonetic":"/dəʊnt/","cn":"不（do not 的缩写）","sentence":["I don't like coffee."],"audioBase64":""}]},{"id":"l1-16","difficulty":"L1","version":1,"en":"See you tomorrow.","cn":"明天见。","note":"See you 连读成 /siːju/；tomorrow 重音在第二音节 /təˈmɒrəʊ/。","sentenceAudioBase64":"","wordList":[{"word":"see","phonetic":"/siː/","cn":"看见","sentence":["I can see the sea."],"audioBase64":""},{"word":"tomorrow","phonetic":"/təˈmɒrəʊ/","cn":"明天","sentence":["We will meet tomorrow."],"audioBase64":""}]}],"L2":[{"id":"l2-01","difficulty":"L2","version":1,"en":"This shop sells very nice clothes.","cn":"这家店卖的衣服很好看。","note":"shop 的 ɒ 要短促圆唇；sells 结尾的 z 别读成 s，very nice 之间可以连读。","sentenceAudioBase64":"","wordList":[{"word":"shop","phonetic":"/ʃɒp/","cn":"商店","sentence":["The shop opens at nine."],"audioBase64":""},{"word":"sell","phonetic":"/sel/","cn":"卖","sentence":["They sell fresh bread here."],"audioBase64":""},{"word":"clothes","phonetic":"/kləʊðz/","cn":"衣服","sentence":["These clothes are too big."],"audioBase64":""}]},{"id":"l2-02","difficulty":"L2","version":1,"en":"I have eggs and milk for breakfast.","cn":"我早餐吃鸡蛋、喝牛奶。","note":"breakfast 重音在第一音节，k 后快速滑到 f；for 弱读成 /fə/，have 弱读成 /həv/。","sentenceAudioBase64":"","wordList":[{"word":"breakfast","phonetic":"/ˈbrekfəst/","cn":"早餐","sentence":["Breakfast is ready at seven."],"audioBase64":""},{"word":"egg","phonetic":"/eɡ/","cn":"鸡蛋","sentence":["I want two eggs, please."],"audioBase64":""},{"word":"milk","phonetic":"/mɪlk/","cn":"牛奶","sentence":["She drinks milk every night."],"audioBase64":""}]},{"id":"l2-03","difficulty":"L2","version":1,"en":"Let's have noodles for lunch today.","cn":"我们今天中午吃面条吧。","note":"Let's 的 t 几乎不发音；noodles 的 uː 要拉长，for 弱读成 /fə/。","sentenceAudioBase64":"","wordList":[{"word":"noodle","phonetic":"/ˈnuːdl/","cn":"面条","sentence":["These noodles taste really good."],"audioBase64":""},{"word":"lunch","phonetic":"/lʌntʃ/","cn":"午餐","sentence":["We have lunch at twelve."],"audioBase64":""},{"word":"today","phonetic":"/təˈdeɪ/","cn":"今天","sentence":["It is warm today."],"audioBase64":""}]},{"id":"l2-04","difficulty":"L2","version":1,"en":"We watch a movie every Friday night.","cn":"我们每周五晚上看一部电影。","note":"watch 的 tʃ 要送气；movie 重音在第一音节，every 读成 /ˈevri/ 两个音节。","sentenceAudioBase64":"","wordList":[{"word":"watch","phonetic":"/wɒtʃ/","cn":"观看","sentence":["I watch the news at nine."],"audioBase64":""},{"word":"movie","phonetic":"/ˈmuːvi/","cn":"电影","sentence":["That movie was very long."],"audioBase64":""},{"word":"night","phonetic":"/naɪt/","cn":"夜晚","sentence":["The city looks beautiful at night."],"audioBase64":""}]},{"id":"l2-05","difficulty":"L2","version":1,"en":"I am very busy at work today.","cn":"我今天上班很忙。","note":"busy 的 s 读 /z/ 不读 /s/；at work 连读成 /ətˈwɜːk/，重音落在 work 上。","sentenceAudioBase64":"","wordList":[{"word":"busy","phonetic":"/ˈbɪzi/","cn":"忙碌的","sentence":["He is busy with his homework."],"audioBase64":""},{"word":"work","phonetic":"/wɜːk/","cn":"工作","sentence":["I walk to work every day."],"audioBase64":""}]},{"id":"l2-06","difficulty":"L2","version":1,"en":"I get to school before eight every morning.","cn":"我每天早上八点前到学校。","note":"school 的 ch 读 /k/；before 重音在第二音节，get to 连读成 /ɡetə/。","sentenceAudioBase64":"","wordList":[{"word":"school","phonetic":"/skuːl/","cn":"学校","sentence":["Our school is near the park."],"audioBase64":""},{"word":"before","phonetic":"/bɪˈfɔː/","cn":"在……之前","sentence":["Wash your hands before dinner."],"audioBase64":""},{"word":"eight","phonetic":"/eɪt/","cn":"八","sentence":["The class starts at eight."],"audioBase64":""}]},{"id":"l2-07","difficulty":"L2","version":1,"en":"My family has dinner together every Sunday.","cn":"我们一家人每周日一起吃晚饭。","note":"family 是三音节 /ˈfæməli/，别读成四音节；has dinner 连读成 /hæzˈdɪnə/。","sentenceAudioBase64":"","wordList":[{"word":"family","phonetic":"/ˈfæməli/","cn":"家庭；家人","sentence":["Her family lives in a small town."],"audioBase64":""},{"word":"dinner","phonetic":"/ˈdɪnə/","cn":"晚餐","sentence":["Dinner is ready now."],"audioBase64":""},{"word":"together","phonetic":"/təˈɡeðə/","cn":"一起","sentence":["We study together after class."],"audioBase64":""}]},{"id":"l2-08","difficulty":"L2","version":1,"en":"My friend and I meet every Friday.","cn":"我和朋友每周五见面。","note":"friend 只有一个音节，别加 /i/；meet 的长元音 iː 要拉满，and I 连读成 /əndaɪ/。","sentenceAudioBase64":"","wordList":[{"word":"friend","phonetic":"/frend/","cn":"朋友","sentence":["She is a good friend of mine."],"audioBase64":""},{"word":"meet","phonetic":"/miːt/","cn":"见面","sentence":["Let's meet after school."],"audioBase64":""},{"word":"Friday","phonetic":"/ˈfraɪdeɪ/","cn":"星期五","sentence":["We have a test on Friday."],"audioBase64":""}]},{"id":"l2-09","difficulty":"L2","version":1,"en":"Let's meet at seven outside the cinema.","cn":"我们七点在电影院外面见吧。","note":"cinema 重音在第一音节，结尾是 /mə/；outside 重音在第二音节，at 弱读成 /ət/。","sentenceAudioBase64":"","wordList":[{"word":"cinema","phonetic":"/ˈsɪnəmə/","cn":"电影院","sentence":["The cinema is next to the bank."],"audioBase64":""},{"word":"outside","phonetic":"/ˌaʊtˈsaɪd/","cn":"在外面","sentence":["Please wait outside the door."],"audioBase64":""},{"word":"seven","phonetic":"/ˈsevn/","cn":"七","sentence":["The shop closes at seven."],"audioBase64":""}]},{"id":"l2-10","difficulty":"L2","version":1,"en":"We go to the beach every holiday.","cn":"每个假期我们都去海边。","note":"holiday 的 h 要送气，重音在第一音节；beach 的 iː 别读短，go to 连读成 /ɡəʊtə/。","sentenceAudioBase64":"","wordList":[{"word":"holiday","phonetic":"/ˈhɒlədeɪ/","cn":"假期","sentence":["The holiday starts next week."],"audioBase64":""},{"word":"beach","phonetic":"/biːtʃ/","cn":"海滩","sentence":["The beach was full of people."],"audioBase64":""},{"word":"go","phonetic":"/ɡəʊ/","cn":"去","sentence":["I go home at five."],"audioBase64":""}]},{"id":"l2-11","difficulty":"L2","version":1,"en":"I saved some money for a new bike.","cn":"我攒了一些钱想买辆新自行车。","note":"money 的 ʌ 要短；saved 结尾的 d 轻收，bike 的双元音 aɪ 要滑动到位。","sentenceAudioBase64":"","wordList":[{"word":"money","phonetic":"/ˈmʌni/","cn":"钱","sentence":["I need some money for the bus."],"audioBase64":""},{"word":"save","phonetic":"/seɪv/","cn":"存；节省","sentence":["She saves a little money each month."],"audioBase64":""},{"word":"bike","phonetic":"/baɪk/","cn":"自行车","sentence":["My bike is very old."],"audioBase64":""}]},{"id":"l2-12","difficulty":"L2","version":1,"en":"Could you tell me the way to the station?","cn":"你能告诉我去车站怎么走吗？","note":"Could you 连读成 /kʊdʒu/；station 的 tion 读 /ʃn/，way 的双元音要饱满。","sentenceAudioBase64":"","wordList":[{"word":"tell","phonetic":"/tel/","cn":"告诉","sentence":["Please tell me your name."],"audioBase64":""},{"word":"way","phonetic":"/weɪ/","cn":"路；方向","sentence":["This is the way to the park."],"audioBase64":""},{"word":"station","phonetic":"/ˈsteɪʃn/","cn":"车站","sentence":["The bus station is over there."],"audioBase64":""}]},{"id":"l2-13","difficulty":"L2","version":1,"en":"Hello, can I speak to Tom, please?","cn":"你好，请问我可以和汤姆通话吗？","note":"speak 的 iː 要长；can I 连读成 /kənaɪ/，please 的 z 别读成 s。","sentenceAudioBase64":"","wordList":[{"word":"hello","phonetic":"/həˈləʊ/","cn":"你好","sentence":["Hello, is anyone home?"],"audioBase64":""},{"word":"speak","phonetic":"/spiːk/","cn":"说话","sentence":["I speak a little English."],"audioBase64":""},{"word":"please","phonetic":"/pliːz/","cn":"请","sentence":["Please close the window."],"audioBase64":""}]},{"id":"l2-14","difficulty":"L2","version":1,"en":"It is cold and windy this morning.","cn":"今天早上又冷又刮风。","note":"cold 的 əʊ 要滑动；windy 的 d 轻；this morning 连读成 /ðɪsˈmɔːnɪŋ/。","sentenceAudioBase64":"","wordList":[{"word":"cold","phonetic":"/kəʊld/","cn":"寒冷的","sentence":["The water is too cold."],"audioBase64":""},{"word":"windy","phonetic":"/ˈwɪndi/","cn":"有风的","sentence":["It was windy all day."],"audioBase64":""},{"word":"morning","phonetic":"/ˈmɔːnɪŋ/","cn":"早晨；上午","sentence":["The morning air is very fresh."],"audioBase64":""}]},{"id":"l2-15","difficulty":"L2","version":1,"en":"I feel sick and very tired today.","cn":"我今天觉得不舒服，还很累。","note":"feel 的 iː 要长；sick 结尾的 k 轻收，tired 读成 /ˈtaɪəd/ 两个音节。","sentenceAudioBase64":"","wordList":[{"word":"sick","phonetic":"/sɪk/","cn":"生病的","sentence":["My brother is sick today."],"audioBase64":""},{"word":"tired","phonetic":"/ˈtaɪəd/","cn":"疲倦的","sentence":["You look tired after work."],"audioBase64":""},{"word":"feel","phonetic":"/fiːl/","cn":"感觉","sentence":["I feel much better now."],"audioBase64":""}]},{"id":"l2-16","difficulty":"L2","version":1,"en":"Sorry for being late, and thanks a lot.","cn":"抱歉我迟到了，非常感谢。","note":"Sorry 的 ɒ 短促；late 的 t 轻收，thanks 的 th 咬舌尖，尾音 ks 短促。","sentenceAudioBase64":"","wordList":[{"word":"sorry","phonetic":"/ˈsɒri/","cn":"抱歉的","sentence":["I am sorry about that."],"audioBase64":""},{"word":"late","phonetic":"/leɪt/","cn":"迟的","sentence":["The bus is late again."],"audioBase64":""},{"word":"thanks","phonetic":"/θæŋks/","cn":"感谢","sentence":["Thanks for the nice gift."],"audioBase64":""}]}],"L3":[{"id":"l3-01","difficulty":"L3","version":1,"en":"I need to prepare the slides before the meeting starts at nine.","cn":"九点会议开始前，我得先把幻灯片准备好。","note":"prepare 重音在第二音节，before 弱读成 /bɪˈfɔː/，句尾降调。","sentenceAudioBase64":"","wordList":[{"word":"prepare","phonetic":"/prɪˈpeə/","cn":"准备","sentence":["We must prepare for the exam."],"audioBase64":""},{"word":"slides","phonetic":"/slaɪdz/","cn":"幻灯片","sentence":["She showed us a few slides."],"audioBase64":""},{"word":"meeting","phonetic":"/ˈmiːtɪŋ/","cn":"会议","sentence":["Our meeting finished early today."],"audioBase64":""}]},{"id":"l3-02","difficulty":"L3","version":1,"en":"Let's discuss the new plan after lunch, if you have time.","cn":"如果你有时间，我们午饭后讨论一下新计划吧。","note":"discuss 重音在第二音节，Let's 的 t 不发音，after 不卷舌。","sentenceAudioBase64":"","wordList":[{"word":"discuss","phonetic":"/dɪˈskʌs/","cn":"讨论","sentence":["They discussed the budget for an hour."],"audioBase64":""},{"word":"plan","phonetic":"/plæn/","cn":"计划","sentence":["Their plan sounds realistic."],"audioBase64":""},{"word":"lunch","phonetic":"/lʌntʃ/","cn":"午餐","sentence":["I usually have lunch at noon."],"audioBase64":""}]},{"id":"l3-03","difficulty":"L3","version":1,"en":"If we improve the schedule, we can finish the report earlier.","cn":"如果我们改进一下日程安排，就能更早完成报告。","note":"improve 重音在第二音节，can 弱读成 /kən/，earlier 重音在前。","sentenceAudioBase64":"","wordList":[{"word":"improve","phonetic":"/ɪmˈpruːv/","cn":"改进；提高","sentence":["Reading aloud can improve your pronunciation."],"audioBase64":""},{"word":"schedule","phonetic":"/ˈʃedjuːl/","cn":"日程安排","sentence":["The schedule is quite tight this week."],"audioBase64":""},{"word":"report","phonetic":"/rɪˈpɔːt/","cn":"报告","sentence":["He sent the report last night."],"audioBase64":""}]},{"id":"l3-04","difficulty":"L3","version":1,"en":"I will support your idea at the meeting tomorrow morning.","cn":"明天上午的会上我会支持你的想法。","note":"support 重音在第二音节，will 弱读成 /wəl/，at the 连读。","sentenceAudioBase64":"","wordList":[{"word":"support","phonetic":"/səˈpɔːt/","cn":"支持","sentence":["My team supported me all the way."],"audioBase64":""},{"word":"idea","phonetic":"/aɪˈdɪə/","cn":"想法；主意","sentence":["That is a clever idea."],"audioBase64":""},{"word":"tomorrow","phonetic":"/təˈmɒrəʊ/","cn":"明天","sentence":["The test is tomorrow afternoon."],"audioBase64":""}]},{"id":"l3-05","difficulty":"L3","version":1,"en":"I realize now that I forgot to send the file.","cn":"我现在意识到，我忘了把文件发出去。","note":"realize 重音在第一音节，that 弱读成 /ðət/，句末降调。","sentenceAudioBase64":"","wordList":[{"word":"realize","phonetic":"/ˈriːəlaɪz/","cn":"意识到","sentence":["She realized her mistake at once."],"audioBase64":""},{"word":"forgot","phonetic":"/fəˈɡɒt/","cn":"忘记（过去式）","sentence":["I forgot my umbrella again."],"audioBase64":""},{"word":"file","phonetic":"/faɪl/","cn":"文件","sentence":["Please save the file on the desk."],"audioBase64":""}]},{"id":"l3-06","difficulty":"L3","version":1,"en":"I don't feel comfortable speaking in front of so many people.","cn":"在这么多人面前讲话，我觉得不太自在。","note":"comfortable 只说三个音节 /ˈkʌmftəbl/，don't 的 t 不发音。","sentenceAudioBase64":"","wordList":[{"word":"comfortable","phonetic":"/ˈkʌmftəbl/","cn":"舒适的；自在的","sentence":["This chair is really comfortable."],"audioBase64":""},{"word":"front","phonetic":"/frʌnt/","cn":"前面","sentence":["A small shop stands in front of the bank."],"audioBase64":""},{"word":"people","phonetic":"/ˈpiːpl/","cn":"人们","sentence":["Many people joined the event."],"audioBase64":""}]},{"id":"l3-07","difficulty":"L3","version":1,"en":"We have to make a decision before the end of this week.","cn":"我们得在本周末之前做出决定。","note":"decision 的 s 发 /ʒ/，重音在第二音节；have to 读成 /hæftə/。","sentenceAudioBase64":"","wordList":[{"word":"decision","phonetic":"/dɪˈsɪʒn/","cn":"决定","sentence":["It was a difficult decision for us."],"audioBase64":""},{"word":"make","phonetic":"/meɪk/","cn":"做；制作","sentence":["Let's make a short list first."],"audioBase64":""},{"word":"week","phonetic":"/wiːk/","cn":"星期；周","sentence":["I am busy all week."],"audioBase64":""}]},{"id":"l3-08","difficulty":"L3","version":1,"en":"You should try turning off your phone while you work.","cn":"工作时你可以试着把手机关掉。","note":"should 的 d 几乎不发音，turning off 连读，句末用降调。","sentenceAudioBase64":"","wordList":[{"word":"should","phonetic":"/ʃʊd/","cn":"应该","sentence":["You should drink more water."],"audioBase64":""},{"word":"phone","phonetic":"/fəʊn/","cn":"手机；电话","sentence":["My phone is out of power."],"audioBase64":""},{"word":"try","phonetic":"/traɪ/","cn":"尝试","sentence":["Try again after a short break."],"audioBase64":""}]},{"id":"l3-09","difficulty":"L3","version":1,"en":"The noise is a real problem, but maybe we can find a compromise.","cn":"噪音确实是个问题，不过我们也许能找个折中的办法。","note":"problem 重音在第一音节，but 的 t 不完全爆破，can 弱读。","sentenceAudioBase64":"","wordList":[{"word":"problem","phonetic":"/ˈprɒbləm/","cn":"问题","sentence":["We solved the problem together."],"audioBase64":""},{"word":"noise","phonetic":"/nɔɪz/","cn":"噪音","sentence":["The noise woke me up."],"audioBase64":""},{"word":"compromise","phonetic":"/ˈkɒmprəmaɪz/","cn":"折中；妥协","sentence":["Both sides accepted the compromise."],"audioBase64":""}]},{"id":"l3-10","difficulty":"L3","version":1,"en":"Could we meet at half past two on Thursday afternoon?","cn":"我们能在周四下午两点半见面吗？","note":"Could 的 l 不发音，meet at 连读成 /miːtət/，问句用升调。","sentenceAudioBase64":"","wordList":[{"word":"meet","phonetic":"/miːt/","cn":"见面","sentence":["Let's meet near the entrance."],"audioBase64":""},{"word":"half","phonetic":"/hɑːf/","cn":"一半；半","sentence":["Half of the seats are taken."],"audioBase64":""},{"word":"Thursday","phonetic":"/ˈθɜːzdeɪ/","cn":"星期四","sentence":["The workshop is on Thursday."],"audioBase64":""}]},{"id":"l3-11","difficulty":"L3","version":1,"en":"I was late because the train stopped for almost twenty minutes.","cn":"我迟到是因为火车停了将近二十分钟。","note":"because 重音在第二音节，was 弱读成 /wəz/，twenty 的 t 常吞掉。","sentenceAudioBase64":"","wordList":[{"word":"late","phonetic":"/leɪt/","cn":"迟到的","sentence":["The bus is ten minutes late."],"audioBase64":""},{"word":"because","phonetic":"/bɪˈkɒz/","cn":"因为","sentence":["I stayed home because it rained."],"audioBase64":""},{"word":"train","phonetic":"/treɪn/","cn":"火车","sentence":["The train leaves at six."],"audioBase64":""}]},{"id":"l3-12","difficulty":"L3","version":1,"en":"I agree with you, although the cost may be a little high.","cn":"我同意你的看法，尽管成本可能有点高。","note":"agree 重音在第二音节，with you 连读成 /wɪðju/，句末降调。","sentenceAudioBase64":"","wordList":[{"word":"agree","phonetic":"/əˈɡriː/","cn":"同意","sentence":["We all agree on the date."],"audioBase64":""},{"word":"cost","phonetic":"/kɒst/","cn":"成本；费用","sentence":["The cost was lower than expected."],"audioBase64":""},{"word":"high","phonetic":"/haɪ/","cn":"高的","sentence":["The wall is two metres high."],"audioBase64":""}]},{"id":"l3-13","difficulty":"L3","version":1,"en":"I see your point, but I don't think that approach will work.","cn":"我明白你的意思，不过我觉得那个办法行不通。","note":"don't think 连读成 /dəʊnθɪŋk/，that 弱读成 /ðət/，but 后停顿。","sentenceAudioBase64":"","wordList":[{"word":"point","phonetic":"/pɔɪnt/","cn":"观点；要点","sentence":["That is a fair point."],"audioBase64":""},{"word":"approach","phonetic":"/əˈprəʊtʃ/","cn":"方法；做法","sentence":["Their approach is more practical."],"audioBase64":""},{"word":"work","phonetic":"/wɜːk/","cn":"起作用；工作","sentence":["This method works quite well."],"audioBase64":""}]},{"id":"l3-14","difficulty":"L3","version":1,"en":"It might be quicker if we divide the tasks between the two teams.","cn":"如果我们把任务分给两个组，可能会更快。","note":"might 的 t 不发音，if we 连读成 /ɪfwi/，teams 的 s 发 /z/。","sentenceAudioBase64":"","wordList":[{"word":"quicker","phonetic":"/ˈkwɪkə/","cn":"更快的","sentence":["The subway is quicker than the bus."],"audioBase64":""},{"word":"divide","phonetic":"/dɪˈvaɪd/","cn":"分开；分配","sentence":["Divide the class into four groups."],"audioBase64":""},{"word":"team","phonetic":"/tiːm/","cn":"团队","sentence":["Our team meets every Monday."],"audioBase64":""}]},{"id":"l3-15","difficulty":"L3","version":1,"en":"Take your time, and let me know if you need a hand.","cn":"别着急，如果需要帮忙就告诉我。","note":"Take your 连读成 /teɪkjə/，let me 的 t 几乎不发音，语气温和。","sentenceAudioBase64":"","wordList":[{"word":"hand","phonetic":"/hænd/","cn":"帮助；手","sentence":["Raise your hand if you agree."],"audioBase64":""},{"word":"need","phonetic":"/niːd/","cn":"需要","sentence":["We need more time."],"audioBase64":""},{"word":"know","phonetic":"/nəʊ/","cn":"知道","sentence":["I know the answer."],"audioBase64":""}]},{"id":"l3-16","difficulty":"L3","version":1,"en":"This room is a bit too warm for me, could we open a window?","cn":"这房间对我来说有点太热了，能开个窗吗？","note":"bit too 连读成 /bɪtuː/，for me 弱读成 /fəmi/，问句末尾升调。","sentenceAudioBase64":"","wordList":[{"word":"warm","phonetic":"/wɔːm/","cn":"温暖的；热的","sentence":["The soup is still warm."],"audioBase64":""},{"word":"window","phonetic":"/ˈwɪndəʊ/","cn":"窗户","sentence":["Please close the window."],"audioBase64":""},{"word":"room","phonetic":"/ruːm/","cn":"房间","sentence":["The room was full of light."],"audioBase64":""}]}],"L4":[{"id":"l4-01","difficulty":"L4","version":1,"en":"If we analyze the numbers from last quarter, the drop is clearly in the north.","cn":"如果我们分析上季度的数据，下滑明显集中在北部。","note":"analyze 重音在首音节 /ˈænəlaɪz/；numbers from 连读，from 弱读成 /frəm/。","sentenceAudioBase64":"","wordList":[{"word":"analyze","phonetic":"/ˈænəlaɪz/","cn":"分析","sentence":["We need to analyze the survey results first."],"audioBase64":""},{"word":"quarter","phonetic":"/ˈkwɔːtə/","cn":"季度；四分之一","sentence":["Sales rose sharply in the second quarter."],"audioBase64":""},{"word":"drop","phonetic":"/drɒp/","cn":"下降；下跌","sentence":["There was a sudden drop in demand."],"audioBase64":""},{"word":"clearly","phonetic":"/ˈklɪəli/","cn":"明显地","sentence":["The instructions were clearly written."],"audioBase64":""}]},{"id":"l4-02","difficulty":"L4","version":1,"en":"The chart shows a steady climb, though the last point is probably just noise.","cn":"图表显示的是稳步上升，不过最后那个点很可能只是噪声。","note":"chart shows 连读成 /tʃɑːtʃəʊz/；though 轻读，just 弱读成 /dʒəs/。","sentenceAudioBase64":"","wordList":[{"word":"steady","phonetic":"/ˈstedi/","cn":"稳定的；平稳的","sentence":["We saw steady growth over six months."],"audioBase64":""},{"word":"climb","phonetic":"/klaɪm/","cn":"上升；攀登","sentence":["Prices began to climb again in May."],"audioBase64":""},{"word":"noise","phonetic":"/nɔɪz/","cn":"噪声；干扰数据","sentence":["Ignore the noise and focus on the trend."],"audioBase64":""},{"word":"chart","phonetic":"/tʃɑːt/","cn":"图表","sentence":["The chart makes the gap obvious."],"audioBase64":""}]},{"id":"l4-03","difficulty":"L4","version":1,"en":"I hesitate to promise a date, because the vendor hasn't even confirmed the scope yet.","cn":"我不太敢承诺日期，因为供应商连范围都还没确认。","note":"hesitate 重音在首音节；hasn't even 中 t 失去爆破，even 读 /ˈiːvn/。","sentenceAudioBase64":"","wordList":[{"word":"hesitate","phonetic":"/ˈhezɪteɪt/","cn":"犹豫；迟疑","sentence":["Don't hesitate to ask if anything is unclear."],"audioBase64":""},{"word":"vendor","phonetic":"/ˈvendə/","cn":"供应商；卖方","sentence":["The vendor agreed to lower the price."],"audioBase64":""},{"word":"confirm","phonetic":"/kənˈfɜːm/","cn":"确认","sentence":["Please confirm the booking by Friday."],"audioBase64":""},{"word":"scope","phonetic":"/skəʊp/","cn":"范围；范畴","sentence":["That question is beyond the scope of this report."],"audioBase64":""}]},{"id":"l4-04","difficulty":"L4","version":1,"en":"It's a trade-off, really: cheaper parts now, or fewer repairs down the road.","cn":"这其实是个取舍：要么现在用便宜零件，要么以后少修几次。","note":"It's a 连读成 /ɪtsə/；trade-off 的 d 与 ɒ 相连，off 稍微拖长表犹豫。","sentenceAudioBase64":"","wordList":[{"word":"trade-off","phonetic":"/ˈtreɪd ɒf/","cn":"权衡；取舍","sentence":["There is always a trade-off between speed and quality."],"audioBase64":""},{"word":"repair","phonetic":"/rɪˈpeə/","cn":"修理；维修","sentence":["The repair took less than an hour."],"audioBase64":""},{"word":"cheaper","phonetic":"/ˈtʃiːpə/","cn":"更便宜的","sentence":["A cheaper option may cost more later."],"audioBase64":""}]},{"id":"l4-05","difficulty":"L4","version":1,"en":"Our budget is adequate for now, but one more delay would put the whole plan at risk.","cn":"我们的预算目前够用，但再拖一次就会让整个计划陷入风险。","note":"adequate 重音在首音节 /ˈædɪkwət/；but one 之间停半拍，at risk 连读。","sentenceAudioBase64":"","wordList":[{"word":"adequate","phonetic":"/ˈædɪkwət/","cn":"足够的；适当的","sentence":["The lighting in the office is barely adequate."],"audioBase64":""},{"word":"budget","phonetic":"/ˈbʌdʒɪt/","cn":"预算","sentence":["We have to stay within the budget."],"audioBase64":""},{"word":"delay","phonetic":"/dɪˈleɪ/","cn":"延迟；耽搁","sentence":["The flight delay ruined our schedule."],"audioBase64":""}]},{"id":"l4-06","difficulty":"L4","version":1,"en":"We don't have adequate cover for the night shift, so someone has to double up.","cn":"我们夜班人手不够，所以有人得连着顶两个班。","note":"don't have 连读成 /dəʊntəv/；night 的 t 失去爆破，has to 读 /ˈhæstə/。","sentenceAudioBase64":"","wordList":[{"word":"cover","phonetic":"/ˈkʌvə/","cn":"顶替；覆盖","sentence":["Can you cover for me on Friday?"],"audioBase64":""},{"word":"shift","phonetic":"/ʃɪft/","cn":"班次","sentence":["She works the early shift all week."],"audioBase64":""},{"word":"double","phonetic":"/ˈdʌbl/","cn":"加倍；兼做","sentence":["Two people had to double up in one room."],"audioBase64":""}]},{"id":"l4-07","difficulty":"L4","version":1,"en":"Being persistent matters more than being brilliant, especially when the first two attempts fail.","cn":"坚持比聪明更重要，特别是前两次尝试都失败的时候。","note":"persistent 重音在第二音节；matters more 的 s 与 m 连读，more 要重读。","sentenceAudioBase64":"","wordList":[{"word":"persistent","phonetic":"/pəˈsɪstənt/","cn":"坚持不懈的","sentence":["Her persistent efforts finally paid off."],"audioBase64":""},{"word":"brilliant","phonetic":"/ˈbrɪliənt/","cn":"聪颖的；出色的","sentence":["That was a brilliant solution."],"audioBase64":""},{"word":"attempt","phonetic":"/əˈtempt/","cn":"尝试","sentence":["He passed the test on his third attempt."],"audioBase64":""}]},{"id":"l4-08","difficulty":"L4","version":1,"en":"Give it a little more patience; these things usually settle down after a month.","cn":"再多点耐心，这类事情通常一个月后就会稳定下来。","note":"Give it a 连读成 /ɡɪvɪtə/；patience 读 /ˈpeɪʃns/，-tience 是 /ʃns/。","sentenceAudioBase64":"","wordList":[{"word":"patience","phonetic":"/ˈpeɪʃns/","cn":"耐心","sentence":["You need patience to learn a language."],"audioBase64":""},{"word":"settle","phonetic":"/ˈsetl/","cn":"稳定；安顿","sentence":["The market will settle eventually."],"audioBase64":""},{"word":"usually","phonetic":"/ˈjuːʒuəli/","cn":"通常","sentence":["I usually walk to work."],"audioBase64":""}]},{"id":"l4-09","difficulty":"L4","version":1,"en":"Under no circumstance should you share that file outside the team.","cn":"在任何情况下你都不该把那个文件分享到团队之外。","note":"Under no 连读成 /ʌndənəʊ/；circumstance 首音节重读，句末降调表强调。","sentenceAudioBase64":"","wordList":[{"word":"circumstance","phonetic":"/ˈsɜːkəmstəns/","cn":"情况；情形","sentence":["We must adapt to changing circumstances."],"audioBase64":""},{"word":"share","phonetic":"/ʃeə/","cn":"分享；共用","sentence":["She shared the results with the group."],"audioBase64":""},{"word":"outside","phonetic":"/ˌaʊtˈsaɪd/","cn":"在……之外","sentence":["Nobody outside the department knew."],"audioBase64":""}]},{"id":"l4-10","difficulty":"L4","version":1,"en":"Before we fix anything, we need to find the fundamental reason the orders keep slipping.","cn":"在动手修补之前，我们得先找出订单不断延误的根本原因。","note":"fundamental 重音在第三音节 /ˌfʌndəˈmentl/；reason the 连读 /ˈriːznðə/。","sentenceAudioBase64":"","wordList":[{"word":"fundamental","phonetic":"/ˌfʌndəˈmentl/","cn":"根本的；基本的","sentence":["Trust is fundamental to any partnership."],"audioBase64":""},{"word":"reason","phonetic":"/ˈriːzn/","cn":"原因；理由","sentence":["There is no reason to panic."],"audioBase64":""},{"word":"slip","phonetic":"/slɪp/","cn":"下滑；延误","sentence":["The schedule began to slip in June."],"audioBase64":""}]},{"id":"l4-11","difficulty":"L4","version":1,"en":"The risk is low, as long as we test the backup system before the launch.","cn":"风险不高，只要我们上线前测试过备份系统。","note":"risk is 的 k 与 ɪ 连读；as long as 连成一串 /əzˈlɒŋəz/，test 处重读。","sentenceAudioBase64":"","wordList":[{"word":"risk","phonetic":"/rɪsk/","cn":"风险","sentence":["Every investment carries some risk."],"audioBase64":""},{"word":"backup","phonetic":"/ˈbækʌp/","cn":"备份；后援","sentence":["Always keep a backup of your files."],"audioBase64":""},{"word":"launch","phonetic":"/lɔːntʃ/","cn":"上线；发布","sentence":["The launch is scheduled for October."],"audioBase64":""}]},{"id":"l4-12","difficulty":"L4","version":1,"en":"Even if it costs a bit more, I'd rather build in a buffer than cut corners.","cn":"就算多花一点钱，我也宁可预留缓冲，而不是偷工减料。","note":"I'd rather 的 d 几乎不发音；build in a 连读 /bɪldɪnə/，than 弱读成 /ðən/。","sentenceAudioBase64":"","wordList":[{"word":"buffer","phonetic":"/ˈbʌfə/","cn":"缓冲；余量","sentence":["Leave a buffer of two days in the plan."],"audioBase64":""},{"word":"cost","phonetic":"/kɒst/","cn":"花费；成本","sentence":["The delay cost us a lot."],"audioBase64":""},{"word":"corner","phonetic":"/ˈkɔːnə/","cn":"角落；拐角","sentence":["The shop is just around the corner."],"audioBase64":""}]},{"id":"l4-13","difficulty":"L4","version":1,"en":"I know it sounds risky, but let me persuade you to give it one more week.","cn":"我知道听起来有风险，但请让我说服你再给一周时间。","note":"let me 连读成 /lemɪ/；persuade 重音在第二音节，结尾 d 只做口型。","sentenceAudioBase64":"","wordList":[{"word":"persuade","phonetic":"/pəˈsweɪd/","cn":"说服","sentence":["She persuaded him to apply for the job."],"audioBase64":""},{"word":"risky","phonetic":"/ˈrɪski/","cn":"有风险的","sentence":["It is risky to lend him money."],"audioBase64":""},{"word":"sound","phonetic":"/saʊnd/","cn":"听起来","sentence":["That sounds like a fair deal."],"audioBase64":""}]},{"id":"l4-14","difficulty":"L4","version":1,"en":"I'm not fully convinced, to be honest, that the new layout solves the real problem.","cn":"说实话，我不太确信新布局能解决真正的问题。","note":"to be honest 是插入语，前后各停半拍；convinced 的 d 与 that 相接失去爆破。","sentenceAudioBase64":"","wordList":[{"word":"convince","phonetic":"/kənˈvɪns/","cn":"使确信；说服","sentence":["The evidence convinced everyone in the room."],"audioBase64":""},{"word":"layout","phonetic":"/ˈleɪaʊt/","cn":"布局；排版","sentence":["The new layout is easier to read."],"audioBase64":""},{"word":"fully","phonetic":"/ˈfʊli/","cn":"完全地","sentence":["I fully agree with your point."],"audioBase64":""}]},{"id":"l4-15","difficulty":"L4","version":1,"en":"Quick update: we've finished the design, and the build should start on Monday.","cn":"快速汇报一下：设计已完成，开发预计周一开始。","note":"Quick update 的 k 与 ʌ 连读；finished 的 ed 发 /t/，design 重音在第二音节。","sentenceAudioBase64":"","wordList":[{"word":"update","phonetic":"/ˈʌpdeɪt/","cn":"更新；最新进展","sentence":["Give me a quick update on the project."],"audioBase64":""},{"word":"design","phonetic":"/dɪˈzaɪn/","cn":"设计","sentence":["The design looks clean and simple."],"audioBase64":""},{"word":"build","phonetic":"/bɪld/","cn":"构建；开发版本","sentence":["The first build crashed twice."],"audioBase64":""}]},{"id":"l4-16","difficulty":"L4","version":1,"en":"Looking back, we rushed the estimate, and that mistake cost us two weeks.","cn":"回头看，我们估价太急，那个错误让我们多花了两周。","note":"rushed 的 ed 发 /t/；that mistake 的 t 失去爆破，句末 weeks 降调收尾。","sentenceAudioBase64":"","wordList":[{"word":"estimate","phonetic":"/ˈestɪmət/","cn":"估计；估算","sentence":["My estimate was off by ten percent."],"audioBase64":""},{"word":"rush","phonetic":"/rʌʃ/","cn":"仓促行事","sentence":["Don't rush the final decision."],"audioBase64":""},{"word":"mistake","phonetic":"/mɪˈsteɪk/","cn":"错误","sentence":["Everyone makes a mistake now and then."],"audioBase64":""}]}],"L5":[{"id":"l5-01","difficulty":"L5","version":1,"en":"As the crisis recedes, the pressure on the government to act begins to diminish.","cn":"随着危机退去，政府采取行动的压力开始减弱。","note":"crisis 重音在第一音节；recedes 后稍停，diminish 重音在第二音节，句尾降调收住。","sentenceAudioBase64":"","wordList":[{"word":"diminish","phonetic":"/dɪˈmɪnɪʃ/","cn":"减少；削弱","sentence":["Public interest in the scandal showed no sign of diminishing."],"audioBase64":""},{"word":"recede","phonetic":"/rɪˈsiːd/","cn":"退去；减弱","sentence":["Once the floodwater receded, residents returned to inspect the damage."],"audioBase64":""},{"word":"pressure","phonetic":"/ˈpreʃə/","cn":"压力","sentence":["Managers came under intense pressure to cut costs before winter."],"audioBase64":""}]},{"id":"l5-02","difficulty":"L5","version":1,"en":"His answer was deliberately ambiguous, leaving both sides convinced that he secretly agreed with them.","cn":"他的回答刻意含糊其辞，让双方都确信他私下赞同自己。","note":"deliberately 四音节，重音在第二音节；leaving 前停顿半拍，that 从句语速加快、尾音略升。","sentenceAudioBase64":"","wordList":[{"word":"ambiguous","phonetic":"/æmˈbɪɡjuəs/","cn":"模棱两可的","sentence":["The wording of the agreement is ambiguous enough to invite litigation."],"audioBase64":""},{"word":"deliberately","phonetic":"/dɪˈlɪbərətli/","cn":"故意地","sentence":["She deliberately avoided mentioning the deadline during the briefing."],"audioBase64":""},{"word":"convinced","phonetic":"/kənˈvɪnst/","cn":"确信的","sentence":["Most economists are convinced that inflation will ease next year."],"audioBase64":""}]},{"id":"l5-03","difficulty":"L5","version":1,"en":"It is becoming increasingly prevalent for graduates to take a year off before entering the workforce.","cn":"越来越多的毕业生在进入职场前先空出一年，这正成为一种普遍现象。","note":"prevalent 重音在第一音节、v 轻咬下唇；for 弱读成 /fə/，workforce 处降调收尾。","sentenceAudioBase64":"","wordList":[{"word":"prevalent","phonetic":"/ˈprevələnt/","cn":"普遍的；流行的","sentence":["This misconception remains prevalent despite decades of clear evidence."],"audioBase64":""},{"word":"increasingly","phonetic":"/ɪnˈkriːsɪŋli/","cn":"越来越","sentence":["Cities are increasingly investing in cycle lanes and public transport."],"audioBase64":""},{"word":"workforce","phonetic":"/ˈwɜːkfɔːs/","cn":"劳动力","sentence":["A younger workforce brings fresh ideas but requires extensive training."],"audioBase64":""}]},{"id":"l5-04","difficulty":"L5","version":1,"en":"The housing shortage is an intricate problem that no single policy, however well funded, can resolve alone.","cn":"住房短缺是个错综复杂的问题，任何单一政策无论资金多充足都无法独自解决。","note":"intricate 三音节，重音在第一音节；that 从句前停顿，however well funded 插入语放慢。","sentenceAudioBase64":"","wordList":[{"word":"intricate","phonetic":"/ˈɪntrɪkət/","cn":"错综复杂的","sentence":["Negotiators had to untangle an intricate web of competing claims."],"audioBase64":""},{"word":"shortage","phonetic":"/ˈʃɔːtɪdʒ/","cn":"短缺","sentence":["A severe shortage of nurses is straining hospitals across the region."],"audioBase64":""},{"word":"resolve","phonetic":"/rɪˈzɒlv/","cn":"解决；决心","sentence":["The committee hopes to resolve the dispute without going to court."],"audioBase64":""}]},{"id":"l5-05","difficulty":"L5","version":1,"en":"After months of deadlock, the two sides finally made substantial progress on the disputed border.","cn":"经过数月僵局，双方终于在边界争端上取得实质性进展。","note":"substantial 重音在第二音节；deadlock 后停顿，progress 重读、句尾略升。","sentenceAudioBase64":"","wordList":[{"word":"substantial","phonetic":"/səbˈstænʃl/","cn":"大量的；实质的","sentence":["The charity received a substantial donation from an anonymous benefactor."],"audioBase64":""},{"word":"deadlock","phonetic":"/ˈdedlɒk/","cn":"僵局","sentence":["Talks ended in deadlock after neither side would revise its position."],"audioBase64":""},{"word":"dispute","phonetic":"/dɪˈspjuːt/","cn":"争端；争议","sentence":["The two neighbours are in dispute over the boundary of their land."],"audioBase64":""}]},{"id":"l5-06","difficulty":"L5","version":1,"en":"Suppose the funding were withdrawn tomorrow; how would the project survive without its main sponsor?","cn":"假设明天资金被撤回，这个项目失去主要赞助方后要如何维持？","note":"Suppose 读作 /səˈpəʊz/；分号处停顿明显，were 弱读，句尾 sponsor 后降调。","sentenceAudioBase64":"","wordList":[{"word":"suppose","phonetic":"/səˈpəʊz/","cn":"假设","sentence":["Suppose we doubled the budget; would the deadline still be realistic?"],"audioBase64":""},{"word":"withdraw","phonetic":"/wɪðˈdrɔː/","cn":"撤回；退出","sentence":["Several sponsors threatened to withdraw their support at the last minute."],"audioBase64":""},{"word":"sponsor","phonetic":"/ˈspɒnsə/","cn":"赞助方","sentence":["The main sponsor demanded more visibility in exchange for funding."],"audioBase64":""}]},{"id":"l5-07","difficulty":"L5","version":1,"en":"We must weigh the short-term savings against the long-term risks of cutting corners on safety.","cn":"我们必须权衡短期节省与在安全上偷工减料带来的长期风险。","note":"weigh 的 gh 不发音；两个 -term 对比重读，against 弱读成 /əˈɡenst/。","sentenceAudioBase64":"","wordList":[{"word":"weigh","phonetic":"/weɪ/","cn":"权衡；称重","sentence":["Policymakers must weigh economic growth against environmental protection."],"audioBase64":""},{"word":"savings","phonetic":"/ˈseɪvɪŋz/","cn":"节省；存款","sentence":["The new system delivered savings of nearly twenty per cent."],"audioBase64":""},{"word":"safety","phonetic":"/ˈseɪfti/","cn":"安全","sentence":["Inspectors questioned whether safety standards had been properly enforced."],"audioBase64":""}]},{"id":"l5-08","difficulty":"L5","version":1,"en":"Granted, the scheme has flaws, but dismissing it outright would leave us with nothing at all.","cn":"诚然，这个方案有缺陷，但一概否定会让我们一无所获。","note":"Granted 独立成句、升调表让步；but 后停顿，outright 重读，nothing at all 逐词加重。","sentenceAudioBase64":"","wordList":[{"word":"granted","phonetic":"/ˈɡrɑːntɪd/","cn":"诚然；就算","sentence":["Granted, the data is incomplete, but the trend is unmistakable."],"audioBase64":""},{"word":"flaw","phonetic":"/flɔː/","cn":"缺陷","sentence":["A fundamental flaw in the design went unnoticed for years."],"audioBase64":""},{"word":"dismiss","phonetic":"/dɪsˈmɪs/","cn":"驳回；不予考虑","sentence":["Critics were too quick to dismiss the idea as unworkable."],"audioBase64":""}]},{"id":"l5-09","difficulty":"L5","version":1,"en":"Nobody anticipated that a minor administrative change would reshape the industry over the following decade.","cn":"没人预料到一项小小的行政调整会在随后十年里重塑整个行业。","note":"anticipated 五音节，重音在第二音节；that 从句内语速平稳，decade 重读并降调。","sentenceAudioBase64":"","wordList":[{"word":"anticipate","phonetic":"/ænˈtɪsɪpeɪt/","cn":"预料","sentence":["Few analysts anticipated how quickly the market would recover."],"audioBase64":""},{"word":"administrative","phonetic":"/ədˈmɪnɪstrətɪv/","cn":"行政的","sentence":["Most delays were administrative rather than technical in nature."],"audioBase64":""},{"word":"reshape","phonetic":"/ˌriːˈʃeɪp/","cn":"重塑","sentence":["Streaming services have reshaped how audiences consume television."],"audioBase64":""}]},{"id":"l5-10","difficulty":"L5","version":1,"en":"By fairness we mean equal access to opportunity, not identical outcomes for every participant.","cn":"我们所说的“公平”是指机会均等，而不是每个参与者结果相同。","note":"fairness 后稍作停顿；mean 与 not 形成对比重音，identical 重音在第二音节。","sentenceAudioBase64":"","wordList":[{"word":"fairness","phonetic":"/ˈfeənəs/","cn":"公平","sentence":["Students questioned the fairness of the grading system."],"audioBase64":""},{"word":"opportunity","phonetic":"/ˌɒpəˈtjuːnəti/","cn":"机会","sentence":["Education should widen opportunity rather than entrench privilege."],"audioBase64":""},{"word":"participant","phonetic":"/pɑːˈtɪsɪpənt/","cn":"参与者","sentence":["Each participant received the same instructions before the experiment."],"audioBase64":""}]},{"id":"l5-11","difficulty":"L5","version":1,"en":"We are prepared to lower the price provided that you extend the contract by two years.","cn":"只要你把合同延长两年，我们愿意降价。","note":"provided that 连读成 /prəˈvaɪdɪd ðət/；条件句前停顿，extend 重读。","sentenceAudioBase64":"","wordList":[{"word":"prepared","phonetic":"/prɪˈpeəd/","cn":"愿意；准备好","sentence":["Both parties seem prepared to compromise on the timetable."],"audioBase64":""},{"word":"extend","phonetic":"/ɪkˈstend/","cn":"延长","sentence":["The university agreed to extend the deadline by three weeks."],"audioBase64":""},{"word":"contract","phonetic":"/ˈkɒntrækt/","cn":"合同","sentence":["The contract expires at the end of the financial year."],"audioBase64":""}]},{"id":"l5-12","difficulty":"L5","version":1,"en":"That offer falls well short of what we can accept, so let us revisit the payment terms.","cn":"那个报价远低于我们能接受的水平，所以我们还是重新谈谈付款条件吧。","note":"falls well short of 一气呵成，short of 连读；so 前停顿，revisit 重音在第三音节。","sentenceAudioBase64":"","wordList":[{"word":"offer","phonetic":"/ˈɒfə/","cn":"报价；提议","sentence":["Their final offer was barely half of the asking price."],"audioBase64":""},{"word":"revisit","phonetic":"/ˌriːˈvɪzɪt/","cn":"重新讨论","sentence":["We may need to revisit the budget once the figures arrive."],"audioBase64":""},{"word":"terms","phonetic":"/tɜːmz/","cn":"条件；条款","sentence":["The terms of the loan were renegotiated after the audit."],"audioBase64":""}]},{"id":"l5-13","difficulty":"L5","version":1,"en":"The report's conclusion rests on an assumption that has never been tested under realistic conditions.","cn":"报告的结论建立在一个从未在现实条件下检验过的假设之上。","note":"report's 的 ts 轻而短；that 从句前停顿，never 重读，realistic 重音在第三音节。","sentenceAudioBase64":"","wordList":[{"word":"assumption","phonetic":"/əˈsʌmpʃn/","cn":"假设","sentence":["The forecast rests on the assumption that demand stays stable."],"audioBase64":""},{"word":"conclusion","phonetic":"/kənˈkluːʒn/","cn":"结论","sentence":["The panel reached its conclusion after hearing eighteen witnesses."],"audioBase64":""},{"word":"realistic","phonetic":"/ˌrɪəˈlɪstɪk/","cn":"现实的","sentence":["Setting a realistic target matters more than appearing ambitious."],"audioBase64":""}]},{"id":"l5-14","difficulty":"L5","version":1,"en":"As remote work became normal, demand for city-centre offices fell sharply and rents followed.","cn":"随着远程办公成为常态，市中心写字楼需求骤降，租金也随之下跌。","note":"remote work 连读；city-centre 重音在 city，fell sharply 加快、句尾降调。","sentenceAudioBase64":"","wordList":[{"word":"remote","phonetic":"/rɪˈməʊt/","cn":"远程的；偏远的","sentence":["Remote working has changed the geography of hiring."],"audioBase64":""},{"word":"sharply","phonetic":"/ˈʃɑːpli/","cn":"急剧地","sentence":["Energy prices rose sharply in the months following the announcement."],"audioBase64":""},{"word":"rent","phonetic":"/rent/","cn":"租金","sentence":["Commercial rent has fallen for the third consecutive quarter."],"audioBase64":""}]},{"id":"l5-15","difficulty":"L5","version":1,"en":"I would argue that the proposal is workable in principle, though not yet ready for a national rollout.","cn":"我认为这个提案原则上可行，但还不适合在全国推广。","note":"I would argue 弱读快读，重音落在 workable；in principle 后停顿，句尾降调。","sentenceAudioBase64":"","wordList":[{"word":"proposal","phonetic":"/prəˈpəʊzl/","cn":"提案","sentence":["The board will vote on the proposal at its next meeting."],"audioBase64":""},{"word":"workable","phonetic":"/ˈwɜːkəbl/","cn":"可行的","sentence":["The plan looks workable, provided the funding arrives on time."],"audioBase64":""},{"word":"rollout","phonetic":"/ˈrəʊlaʊt/","cn":"推广；上线","sentence":["A nationwide rollout is scheduled for the second half of the year."],"audioBase64":""}]},{"id":"l5-16","difficulty":"L5","version":1,"en":"In conclusion, the evidence suggests that patience, rather than speed, will determine the outcome of these talks.","cn":"总之，证据表明决定这些会谈结果的是耐心，而不是速度。","note":"In conclusion 后停顿；patience 与 speed 对比重读、升调，determine 后放慢并降调。","sentenceAudioBase64":"","wordList":[{"word":"patience","phonetic":"/ˈpeɪʃns/","cn":"耐心","sentence":["Patience is essential when negotiations involve several governments."],"audioBase64":""},{"word":"determine","phonetic":"/dɪˈtɜːmɪn/","cn":"决定","sentence":["Attendance will determine whether the venue is worth hiring."],"audioBase64":""},{"word":"outcome","phonetic":"/ˈaʊtkʌm/","cn":"结果","sentence":["Nobody could predict the outcome of such a close contest."],"audioBase64":""}]}]};</script>
+<script>/* EnglishStudy — single-file local-first English flashcard app */
+(function () {
+  "use strict";
+
+  var KEY = "ess_record_v1";
+  var RANKS = [
+    ["青铜Ⅲ", 0], ["青铜Ⅱ", 5], ["青铜Ⅰ", 10], ["白银Ⅲ", 18], ["白银Ⅱ", 26],
+    ["白银Ⅰ", 34], ["黄金Ⅲ", 45], ["黄金Ⅱ", 56], ["黄金Ⅰ", 68], ["铂金Ⅲ", 82],
+    ["铂金Ⅱ", 96], ["铂金Ⅰ", 112], ["钻石Ⅲ", 130], ["钻石Ⅱ", 150], ["钻石Ⅰ", 172],
+    ["星耀Ⅲ", 196], ["星耀Ⅱ", 222], ["星耀Ⅰ", 250], ["王者", 280]
+  ];
+  var INTERVALS = [1, 3, 7, 14, 30];
+  var LEVELS = ["L1", "L2", "L3", "L4", "L5"];
+  var LEVEL_NAME = { L1: "A1 入门", L2: "A2 基础", L3: "B1 进阶", L4: "B2 中高", L5: "C1 高阶" };
+  var TEST_WORDS = {
+    L1: ["hello", "good", "name", "yes", "no", "cat", "dog", "book"],
+    L2: ["shop", "breakfast", "watch", "busy", "family", "friend", "holiday", "money"],
+    L3: ["prepare", "discuss", "improve", "support", "realize", "comfortable", "decision", "suggest"],
+    L4: ["analyze", "hesitate", "adequate", "persistent", "circumstance", "fundamental", "consequence", "approach"],
+    L5: ["substantial", "ambiguous", "diminish", "prevalent", "intricate", "coherent", "reluctant", "negligible"]
+  };
+
+  /* ---------------- utils ---------------- */
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function todayStr() { var d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function nowStr() {
+    var d = new Date();
+    return todayStr() + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+  }
+  function addDays(n) {
+    var d = new Date(); d.setHours(9, 0, 0, 0); d.setDate(d.getDate() + n);
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T09:00:00";
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function $(sel) { return document.querySelector(sel); }
+  var toastTimer;
+  function toast(msg) {
+    var t = $("#toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, 1800);
+  }
+  function starOf(score) { return score >= 90 ? 3 : score >= 75 ? 2 : score >= 60 ? 1 : 0; }
+  function rankOf(star) {
+    var name = RANKS[0][0];
+    for (var i = 0; i < RANKS.length; i++) if (star >= RANKS[i][1]) name = RANKS[i][0];
+    return name;
+  }
+  function rankInfo(star) {
+    var cur = RANKS[0], next = null;
+    for (var i = 0; i < RANKS.length; i++) {
+      if (star >= RANKS[i][1]) { cur = RANKS[i]; next = RANKS[i + 1] || null; }
+    }
+    var pct = 100;
+    if (next) {
+      var span = next[1] - cur[1];
+      pct = span <= 0 ? 100 : Math.max(0, Math.min(100, Math.round(((star - cur[1]) / span) * 100)));
+    }
+    return { name: cur[0], next: next ? next[0] : null, need: next ? Math.max(0, next[1] - star) : 0, pct: pct };
+  }
+
+  /* ---------------- storage ---------------- */
+  function blankRecord() {
+    var rec = {
+      vocab_test: { lastTestTime: "", estimateLevel: "", rightCount: 0, wrongCount: 0 },
+      rank: { currentRank: "青铜Ⅲ", star: 0 },
+      srs: [], newWordList: [], studyHistory: [],
+      setting: { wifiAutoCache: true, maxCacheNum: 300, playSpeed: 1.0, order: "order", dailyGoal: 8 },
+      meta: { schemaVersion: 1, createdAt: nowStr(), lastWrite: "", lastLevel: "L1" },
+      streak: { days: 0, lastDay: "" }
+    };
+    return rec;
+  }
+  function demoRecord() {
+    var rec = blankRecord();
+    rec.rank.star = 29; rec.rank.currentRank = rankOf(29);
+    rec.vocab_test = { lastTestTime: todayStr(), estimateLevel: "L2", rightCount: 21, wrongCount: 9 };
+    rec.meta.lastLevel = "L2";
+    var words = PACKS.L1[0].wordList.concat(PACKS.L1[1].wordList, PACKS.L2[0].wordList);
+    words.forEach(function (w, i) {
+      rec.newWordList.push({
+        word: w.word, phonetic: w.phonetic, cn: w.cn, fromId: "l1-0" + ((i % 2) + 1),
+        addedAt: todayStr(), level: i % 3, nextReview: addDays(i % 2 === 0 ? -1 : i % 5), archived: false
+      });
+    });
+    rec.srs.push({ id: "l2-01", type: "sentence", level: 1, lastReview: todayStr(), nextReview: addDays(-1), wrongCount: 0 });
+    rec.srs.push({ id: "l2-02", type: "sentence", level: 2, lastReview: todayStr(), nextReview: addDays(3), wrongCount: 1 });
+    rec.studyHistory.push({ time: nowStr(), type: "短句", level: "L2", count: 10, right: 7, wrong: 3, star: 1 });
+    rec.studyHistory.push({ time: nowStr(), type: "跟读", level: "L2", score: 86, star: 2 });
+    rec.streak = { days: 4, lastDay: todayStr() };
+    return rec;
+  }
+  var R;
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return null;
+      var rec = JSON.parse(raw);
+      return rec && rec.rank ? rec : null;
+    } catch (e) { return null; }
+  }
+  function save() {
+    R.meta.lastWrite = nowStr();
+    R.rank.currentRank = rankOf(R.rank.star);
+    try { localStorage.setItem(KEY, JSON.stringify(R)); } catch (e) { toast("本地存储失败，可能是隐私模式"); }
+  }
+
+  /* ---------------- packs ---------------- */
+  var CARD_BY_ID = {};
+  LEVELS.forEach(function (lv) {
+    (PACKS[lv] || []).forEach(function (c) { CARD_BY_ID[c.id] = c; });
+  });
+  function allSentences() {
+    var out = [];
+    LEVELS.forEach(function (lv) {
+      (PACKS[lv] || []).forEach(function (c) { out.push(c); });
+    });
+    return out;
+  }
+  function dueSentences() {
+    var t = todayStr();
+    return R.srs.filter(function (s) {
+      return (s.nextReview || "").slice(0, 10) <= t && CARD_BY_ID[s.id];
+    });
+  }
+  function dueWords() {
+    var t = todayStr();
+    return R.newWordList.filter(function (w) { return !w.archived && (w.nextReview || "").slice(0, 10) <= t; });
+  }
+
+  /* ---------------- speech ---------------- */
+  var voiceCache = null;
+  function pickVoice() {
+    if (voiceCache) return voiceCache;
+    if (!("speechSynthesis" in window)) return null;
+    var vs = speechSynthesis.getVoices() || [];
+    voiceCache = vs.filter(function (v) { return /en-GB/i.test(v.lang); })[0] ||
+      vs.filter(function (v) { return /^en/i.test(v.lang); })[0] || null;
+    return voiceCache;
+  }
+  function speak(text, slow) {
+    if (!("speechSynthesis" in window)) return toast("这台设备不支持朗读");
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-GB";
+      var v = pickVoice(); if (v) u.voice = v;
+      var base = Number(R.setting.playSpeed) || 1;
+      u.rate = Math.max(0.5, Math.min(1.5, slow ? base * 0.62 : base));
+      speechSynthesis.speak(u);
+    } catch (e) { toast("朗读失败"); }
+  }
+
+  /* ---------------- state ---------------- */
+  var S = {
+    view: "home", deck: [], i: 0, flip: false, undo: null,
+    sess: null, rec: { mr: null, chunks: [], url: null, t0: 0, timer: null, active: false },
+    scoreVal: 78, test: null, sheet: null, lastSummary: null
+  };
+
+  /* ---------------- language model helpers ---------------- */
+  function itemOf(it) {
+    if (it.kind === "s") {
+      return {
+        kind: "s", id: it.card.id, lvl: it.card.difficulty, title: it.card.en,
+        cn: it.card.cn, note: it.card.note, words: it.card.wordList || [], phonetic: ""
+      };
+    }
+    var w = null;
+    for (var k = 0; k < R.newWordList.length; k++) if (R.newWordList[k].word === it.k) w = R.newWordList[k];
+    if (!w) w = {};
+    return {
+      kind: "w", id: "w:" + it.k, lvl: w.level || 0, title: it.k, cn: w.cn || "",
+      note: "", words: [], phonetic: w.phonetic || "", ex: (w.sentence || [])[0] || ""
+    };
+  }
+  function addWordFromCard(w, fromId) {
+    var exists = R.newWordList.some(function (x) {
+      return String(x.word).toLowerCase() === String(w.word).toLowerCase();
+    });
+    if (exists) return;
+    R.newWordList.push({
+      word: w.word, phonetic: w.phonetic || "", cn: w.cn || "", fromId: fromId,
+      addedAt: todayStr(), level: 0, nextReview: addDays(1), archived: false,
+      sentence: w.sentence || []
+    });
+  }
+  function mark(it, ok) {
+    var info = itemOf(it);
+    if (it.kind === "s") {
+      var e = null;
+      for (var i = 0; i < R.srs.length; i++) if (R.srs[i].id === info.id) e = R.srs[i];
+      if (!e) { e = { id: info.id, type: "sentence", level: 0, lastReview: "", nextReview: "", wrongCount: 0 }; R.srs.push(e); }
+      if (ok) e.level = Math.min(4, (e.level || 0) + 1);
+      else { e.level = 0; e.wrongCount = (e.wrongCount || 0) + 1; (info.words || []).forEach(function (w) { addWordFromCard(w, info.id); }); }
+      e.lastReview = todayStr();
+      e.nextReview = addDays(INTERVALS[e.level]);
+    } else {
+      var w = null;
+      for (var j = 0; j < R.newWordList.length; j++) if (R.newWordList[j].word === it.k) w = R.newWordList[j];
+      if (!w) return info;
+      if (ok) { w.level = Math.min(4, (w.level || 0) + 1); if (w.level >= 4) w.archived = true; }
+      else { w.level = 0; w.archived = false; }
+      w.nextReview = addDays(INTERVALS[w.level]);
+      w.lastReview = todayStr();
+    }
+    touchStreak();
+    return info;
+  }
+  function touchStreak() {
+    var t = todayStr();
+    if (R.streak.lastDay === t) return;
+    var y = new Date(); y.setDate(y.getDate() - 1);
+    var yStr = y.getFullYear() + "-" + pad(y.getMonth() + 1) + "-" + pad(y.getDate());
+    R.streak.days = R.streak.lastDay === yStr ? (R.streak.days || 0) + 1 : 1;
+    R.streak.lastDay = t;
+  }
+
+  /* ---------------- sessions ---------------- */
+  function buildDeck(level, mode) {
+    var cards = (PACKS[level] || []).slice();
+    if (R.setting.order === "random") cards.sort(function () { return Math.random() - 0.5; });
+    var list = cards.map(function (c) { return { kind: "s", card: c }; });
+    if (mode === "due") {
+      var dueIds = dueSentences().map(function (s) { return s.id; });
+      var dueList = list.filter(function (x) { return dueIds.indexOf(x.card.id) >= 0; });
+      if (dueList.length) return dueList;
+    }
+    return list;
+  }
+  function startFlash(level, mode) {
+    var deck = buildDeck(level, mode);
+    if (!deck.length) return toast("这个等级没有卡片");
+    S.deck = deck; S.i = 0; S.flip = false; S.undo = null;
+    S.sess = { type: "sentence", level: level, right: 0, wrong: 0, t0: Date.now() };
+    resetRec();
+    S.view = "flash";
+    render();
+  }
+  function openWord() {
+    var due = dueWords();
+    var pool = due.length ? due : R.newWordList.filter(function (w) { return !w.archived; });
+    S.deck = pool.slice(0, 20).map(function (w) { return { kind: "w", k: w.word }; });
+    S.i = 0; S.flip = false; S.undo = null;
+    S.sess = { type: "word", level: R.meta.lastLevel || "L1", right: 0, wrong: 0, t0: Date.now() };
+    resetRec();
+    S.view = "word";
+    render();
+  }
+  function answer(ok) {
+    if (S.i >= S.deck.length) return;
+    var it = S.deck[S.i];
+    S.undo = { rec: JSON.stringify(R), i: S.i, right: S.sess.right, wrong: S.sess.wrong };
+    var info = mark(it, ok);
+    if (ok) S.sess.right++; else S.sess.wrong++;
+    save();
+    var fc = $("#fc");
+    if (fc) {
+      fc.style.transform = "translateX(" + (ok ? 130 : -130) + "%) rotate(" + (ok ? 8 : -8) + "deg)";
+      fc.style.opacity = "0";
+    }
+    var go = function () {
+      S.i++;
+      S.flip = false;
+      resetRec();
+      if (S.i >= S.deck.length) finishSession(info);
+      else render();
+    };
+    setTimeout(go, 200);
+  }
+  function finishSession() {
+    var s = S.sess;
+    var total = s.right + s.wrong;
+    var star = total >= 5 ? 1 : 0;
+    R.rank.star += star;
+    R.studyHistory.unshift({
+      time: nowStr(), type: s.type === "sentence" ? "短句" : "单词", level: s.level,
+      count: total, right: s.right, wrong: s.wrong, star: star
+    });
+    if (R.studyHistory.length > 200) R.studyHistory.length = 200;
+    save();
+    S.lastSummary = { total: total, right: s.right, wrong: s.wrong, star: star, type: s.type };
+    S.view = "summary";
+    render();
+  }
+
+  /* ---------------- recording ---------------- */
+  function resetRec() {
+    stopTimer();
+    if (S.rec.mr && S.rec.mr.state !== "inactive") { try { S.rec.mr.stop(); } catch (e) {} }
+    if (S.rec.url) { try { URL.revokeObjectURL(S.rec.url); } catch (e) {} }
+    S.rec = { mr: null, chunks: [], url: null, t0: 0, timer: null, active: false, secs: 0 };
+    S.scoreVal = 78;
+  }
+  function stopTimer() { if (S.rec.timer) { clearInterval(S.rec.timer); S.rec.timer = null; } }
+  function startRec() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      return toast("需要 HTTPS 或本地服务才能用麦克风");
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      var mime = "";
+      if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported("audio/mp4")) mime = "audio/mp4";
+      var mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      S.rec.mr = mr; S.rec.chunks = []; S.rec.active = true; S.rec.secs = 0;
+      mr.ondataavailable = function (e) { if (e.data && e.data.size) S.rec.chunks.push(e.data); };
+      mr.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); });
+        var blob = new Blob(S.rec.chunks, { type: mime || "audio/mp4" });
+        if (S.rec.url) URL.revokeObjectURL(S.rec.url);
+        S.rec.url = URL.createObjectURL(blob);
+        S.rec.active = false;
+        stopTimer();
+        render();
+        toast("录音完成，对比听一下");
+      };
+      mr.start();
+      S.rec.t0 = Date.now();
+      S.rec.timer = setInterval(function () {
+        S.rec.secs = Math.floor((Date.now() - S.rec.t0) / 1000);
+        var el = $("#recTime");
+        if (el) el.textContent = fmtTime(S.rec.secs);
+      }, 250);
+      render();
+    }).catch(function (err) {
+      toast("麦克风没开：请在 Safari 设置里允许");
+      void err;
+    });
+  }
+  function stopRec() { if (S.rec.mr && S.rec.mr.state !== "inactive") S.rec.mr.stop(); }
+  function fmtTime(s) { return Math.floor(s / 60) + ":" + pad(s % 60); }
+  function playMine() {
+    if (!S.rec.url) return;
+    var a = new Audio(S.rec.url);
+    a.play().catch(function () { toast("播放失败"); });
+  }
+  function submitScore() {
+    var v = Number(S.scoreVal) || 0;
+    var st = starOf(v);
+    R.rank.star += st;
+    var it = S.i < S.deck.length ? S.deck[S.i] : null;
+    R.studyHistory.unshift({
+      time: nowStr(), type: "跟读", level: it ? itemOf(it).lvl : R.meta.lastLevel,
+      score: v, star: st, id: it ? itemOf(it).id : ""
+    });
+    touchStreak();
+    save();
+    toast("+" + st + " 星 · 当前 " + rankOf(R.rank.star));
+    render();
+  }
+
+  /* ---------------- render: parts ---------------- */
+  function tabbar() {
+    var due = dueWords().length;
+    var tabs = [
+      ["home", "🏠", "今天"], ["word", "📖", "单词"], ["book", "📚", "生词本"], ["me", "🏅", "我的"]
+    ];
+    return '<div class="tabs">' + tabs.map(function (t) {
+      var on = S.view === t[0] || (t[0] === "home" && ["flash", "summary", "test"].indexOf(S.view) >= 0);
+      var badge = (t[0] === "word" && due) ? '<span class="badge">' + (due > 9 ? "9+" : due) + "</span>" : "";
+      return '<button class="tab' + (on ? " on" : "") + '" data-act="nav:' + t[0] + '"><i>' + t[1] + "</i>" + t[2] + badge + "</button>";
+    }).join("") + "</div>";
+  }
+  function rankCard(compact) {
+    var ri = rankInfo(R.rank.star);
+    var nextTxt = ri.next ? "距离 " + ri.next + " 还差 " + ri.need + " 星" : "已到顶 · 王者";
+    return '<div class="rankbar">' +
+      '<div class="rl">当前段位</div>' +
+      '<div class="rn">' + ri.name + ' <span style="font-size:14px;opacity:.85">★' + R.rank.star + "</span></div>" +
+      '<div class="st">' + nextTxt + '</div>' +
+      '<div class="track"><i style="width:' + ri.pct + '%"></i></div>' +
+      (compact ? "" : "") + "</div>";
+  }
+
+  /* ---------------- render: views ---------------- */
+  function viewHome() {
+    var dueS = dueSentences().length;
+    var dueW = dueWords().length;
+    var lvl = R.meta.lastLevel || "L1";
+    var goal = Number(R.setting.dailyGoal) || 8;
+    var d = new Date();
+    var wk = "日一二三四五六"[d.getDay()];
+    var sub = (d.getMonth() + 1) + " 月 " + d.getDate() + " 日 周" + wk;
+    if (R.streak.days) sub += " · 连续 " + R.streak.days + " 天";
+    var html = '<div class="h1">今天</div><p class="sub">' + sub + "</p>";
+    html += rankCard();
+    html += '<div class="tiles">' +
+      '<div class="tile"><div class="n">' + dueS + '</div><div class="l">待复习短句</div></div>' +
+      '<div class="tile"><div class="n">' + dueW + '</div><div class="l">到期单词</div></div>' +
+      "</div>";
+    html += '<button class="btn" data-act="start:' + lvl + '">开始短句闪卡 · ' + lvl + " " + LEVEL_NAME[lvl] + "</button>";
+    if (dueS) {
+      html += '<button class="btn alt" style="margin-top:10px" data-act="startdue:' + lvl + '">只刷待复习 · ' + dueS + " 张</button>";
+    }
+    html += '<button class="btn alt" style="margin-top:10px" data-act="nav:word">' +
+      (dueW ? "复习到期单词 · " + dueW + " 个" : "单词闪卡") + "</button>";
+
+    html += '<div class="card" style="margin-top:14px">' +
+      '<div class="row between"><div><div style="font-weight:650;font-size:15px">今日目标</div>' +
+      '<div class="muted" style="margin-top:3px">建议每天 ' + goal + " 张卡 + 2 句跟读</div></div>" +
+      '<div class="pill blue">' + (R.streak.days ? R.streak.days + " 天连续" : "今天开始") + "</div></div></div>";
+
+    if (!R.vocab_test.lastTestTime) {
+      html += '<div class="card" style="margin-top:12px"><div style="font-weight:650;font-size:15px">先测一下水平</div>' +
+        '<div class="muted" style="margin-top:4px;line-height:1.6">40 个词，2 分钟，测完给你推荐一个起点等级。只推荐，不锁死。</div>' +
+        '<button class="btn alt sm" style="width:100%;margin-top:10px" data-act="nav:test">开始定级测试</button></div>';
+    } else {
+      html += '<div class="card" style="margin-top:12px"><div class="row between">' +
+        '<div><div style="font-weight:650;font-size:15px">换难度</div>' +
+        '<div class="muted" style="margin-top:3px">当前 L' + lvl.slice(1) + " · " + LEVEL_NAME[lvl] + "</div></div>" +
+        '<button class="btn alt sm" data-act="nav:test">重测</button></div>' +
+        '<div class="seg" style="margin-top:12px">' +
+        LEVELS.map(function (l) {
+          return '<button class="' + (l === lvl ? "on" : "") + '" data-act="level:' + l + '">' + l + "</button>";
+        }).join("") + "</div></div>";
+    }
+    return html;
+  }
+
+  function flashCardHTML(it, flipped) {
+    var inf = itemOf(it);
+    var len = inf.title.length;
+    var cls = len > 62 ? " xs" : len > 40 ? " s" : "";
+    var front = '<div class="' + (flipped ? "hidden" : "") + '">' +
+      '<div class="en' + cls + '">' + esc(inf.title) + "</div>" +
+      '<div class="meta"><span class="pill blue">' + (it.kind === "s" ? inf.lvl : "生词") + "</span>" +
+      (it.kind === "s" ? '<span class="pill">' + (inf.words.length) + " 个词</span>" : "") +
+      (inf.phonetic ? '<span class="pill">' + esc(inf.phonetic) + "</span>" : "") + "</div>" +
+      '<div class="hint">← 左滑：不认识　·　右滑：认识 →<br>点卡片看中文 / 听发音 / 跟读</div></div>';
+
+    var back = '<div class="back' + (flipped ? "" : " hidden") + '">' +
+      '<div class="en' + cls + '" style="font-size:19px;opacity:.55">' + esc(inf.title) + "</div>" +
+      '<div class="cn">' + esc(inf.cn) + "</div>" +
+      (inf.phonetic ? '<div class="muted" style="margin:-6px 0 10px">' + esc(inf.phonetic) + "</div>" : "") +
+      (inf.note ? '<div class="note">📝 ' + esc(inf.note) + "</div>" : "") +
+      (inf.ex ? '<div class="note" style="margin-top:8px">📖 ' + esc(inf.ex) + "</div>" : "") +
+      (inf.words && inf.words.length ?
+        '<div class="wlist">' + inf.words.map(function (w) {
+          return '<div class="witem"><span class="w">' + esc(w.word) + '</span><span class="p">' + esc(w.phonetic) +
+            '</span><span class="c">' + esc(w.cn) + "</span></div>";
+        }).join("") + "</div>" : "") +
+      audioBlock(it, inf) +
+      "</div>";
+
+    return '<div class="stage"><div class="fcard' + (it.kind === "w" ? " w" : "") + '" id="fc">' +
+      '<div class="swipe-tag r">认识</div><div class="swipe-tag l">不认识</div>' +
+      front + back + "</div></div>";
+  }
+
+  function audioBlock(it, inf) {
+    var hasRec = !!(navigator.mediaDevices && window.MediaRecorder);
+    var h = '<div class="audioRow">' +
+      '<button data-act="speak">🔊 原音</button>' +
+      '<button data-act="slow">🐢 慢速</button>' +
+      '<button data-act="speakw">🔤 逐词</button>' +
+      "</div>";
+    if (!hasRec) {
+      return h + '<div class="muted" style="margin-top:10px">跟读录音需要在 HTTPS 环境下打开（部署到 GitHub Pages 后就有）。</div>';
+    }
+    h += '<div class="recwrap">';
+    if (S.rec.active) {
+      h += '<div class="row between"><div class="rectimer">● 录音中 <span id="recTime">' + fmtTime(S.rec.secs) + "</span></div>" +
+        '<button class="btn sm" data-act="recstop">停止</button></div>';
+    } else if (S.rec.url) {
+      h += '<div class="row" style="gap:8px"><button class="btn alt sm" style="flex:1" data-act="playmine">🎧 我的录音</button>' +
+        '<button class="btn sm" style="flex:1" data-act="recstart">🎙 再录一次</button></div>' +
+        '<div class="score"><div class="row between" style="margin-top:14px">' +
+        '<div class="muted">自评（完整度 40 / 连读 30 / 重音 20 / 流畅 10）</div></div>' +
+        '<div class="row" style="gap:12px;margin-top:6px"><input type="range" min="0" max="100" step="1" value="' + S.scoreVal + '" id="scoreRange">' +
+        '<div class="sv" id="scoreVal">' + S.scoreVal + "</div></div>" +
+        '<div class="row between" style="margin-top:4px"><div class="muted" id="scoreStar">' + "★".repeat(starOf(S.scoreVal)) + "☆".repeat(3 - starOf(S.scoreVal)) + "</div>" +
+        '<button class="btn sm" data-act="score">提交打分</button></div></div>';
+    } else {
+      h += '<div class="row" style="gap:8px"><div class="muted" style="flex:1">🎙 跟自己读一遍，录音对比</div>' +
+        '<button class="btn sm" data-act="recstart">开始跟读</button></div>';
+    }
+    h += "</div>";
+    return h;
+  }
+
+  function viewFlash() {
+    var it = S.deck[S.i];
+    if (!it) { S.view = "home"; return viewHome(); }
+    var inf = itemOf(it);
+    var total = S.deck.length;
+    var pct = Math.round((S.i / total) * 100);
+    var head = '<div class="fc-top">' +
+      '<button class="x" data-act="quit">✕</button>' +
+      '<div class="fc-prog"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="fc-count">' + (S.i + 1) + " / " + total + "</div></div>";
+    var acts = '<div class="acts">' +
+      '<button class="no" data-act="no">⬅️ 不认识</button>' +
+      '<button class="mid" data-act="flip">' + (S.flip ? "返回" : "🔍 详情") + "</button>" +
+      '<button class="ok" data-act="ok">认识 ➡️</button></div>';
+    var foot = S.undo ? '<div style="text-align:center;margin-top:12px"><button class="btn alt sm" data-act="undo">↩︎ 撤销上一张</button></div>' : "";
+    return head + flashCardHTML(it, S.flip) + acts + foot;
+  }
+
+  function viewWord() {
+    if (!S.deck.length) {
+      return '<div class="h1">单词复习</div><p class="sub">艾宾浩斯队列</p>' +
+        '<div class="empty">' + (R.newWordList.length
+          ? "今天的单词都刷完了 🎉<br>明天到期的会自动出现。"
+          : "生词本是空的。<br>刷卡时打「⬅️ 不认识」，句子里的词会自动收进来。") + "</div>" +
+        '<button class="btn" data-act="nav:home">去刷短句</button>';
+    }
+    var it = S.deck[S.i];
+    if (!it) { S.view = "home"; return viewHome(); }
+    var total = S.deck.length;
+    var pct = Math.round((S.i / total) * 100);
+    var head = '<div class="fc-top">' +
+      '<button class="x" data-act="quit">✕</button>' +
+      '<div class="fc-prog"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="fc-count">' + (S.i + 1) + " / " + total + "</div></div>";
+    var acts = '<div class="acts">' +
+      '<button class="no" data-act="no">⬅️ 不认识</button>' +
+      '<button class="mid" data-act="flip">' + (S.flip ? "返回" : "🔍 详情") + "</button>" +
+      '<button class="ok" data-act="ok">认识 ➡️</button></div>';
+    var tip = '<div class="muted" style="margin:14px 4px">到期 ' + dueWords().length + " 个 · 生词本共 " + R.newWordList.length + " 个</div>";
+    return head + flashCardHTML(it, S.flip) + acts + tip;
+  }
+
+  function viewSummary() {
+    var s = S.lastSummary || { total: 0, right: 0, wrong: 0, star: 0 };
+    var rate = s.total ? Math.round((s.right / s.total) * 100) : 0;
+    var html = '<div class="h1">这一局结束</div><p class="sub">' + (s.type === "word" ? "单词复习" : "短句闪卡") + " · " + s.total + " 张</p>";
+    html += '<div class="card" style="text-align:center;padding:26px 18px">' +
+      '<div style="font-size:44px;font-weight:750;letter-spacing:-1px">' + rate + '<span style="font-size:20px">%</span></div>' +
+      '<div class="muted" style="margin-top:2px">认识率</div>' +
+      '<div class="row" style="justify-content:center;gap:18px;margin-top:16px">' +
+      '<div><div style="font-size:20px;font-weight:700;color:#1c7a45">' + s.right + '</div><div class="muted">认识</div></div>' +
+      '<div><div style="font-size:20px;font-weight:700;color:#b03a2e">' + s.wrong + '</div><div class="muted">不认识</div></div>' +
+      '<div><div style="font-size:20px;font-weight:700;color:#9a6212">+' + s.star + '</div><div class="muted">星</div></div>' +
+      "</div></div>";
+    html += rankCard();
+    html += '<button class="btn" style="margin-top:12px" data-act="again">再来一局</button>';
+    html += '<button class="btn alt" style="margin-top:10px" data-act="nav:home">回到今天</button>';
+    return html;
+  }
+
+  function viewBook() {
+    var list = R.newWordList.slice().sort(function (a, b) {
+      return String(a.nextReview).localeCompare(String(b.nextReview));
+    });
+    var html = '<div class="h1">生词本</div><p class="sub">共 ' + list.length + " 个 · " + dueWords().length + " 个今天到期</p>";
+    html += '<div class="card"><div class="row" style="gap:8px">' +
+      '<input id="newWord" placeholder="手动加一个单词" style="flex:1;border:0;background:#f3f6fb;border-radius:12px;padding:12px;font-size:14px;font-family:inherit">' +
+      '<button class="btn sm" data-act="addword">加入</button></div></div>';
+    if (!list.length) {
+      html += '<div class="empty">生词本是空的。<br>刷卡时点「⬅️ 不认识」，句子里的词会自动收进来。</div>';
+      return html;
+    }
+    html += '<div class="list" style="margin-top:12px">' + list.map(function (w) {
+      var due = (w.nextReview || "").slice(0, 10) <= todayStr();
+      var lv = w.archived ? "已归档" : "第 " + ((w.level || 0) + 1) + " 阶";
+      return '<div class="li"><div class="main"><div class="t">' + esc(w.word) +
+        (w.phonetic ? ' <span class="muted">' + esc(w.phonetic) + "</span>" : "") + "</div>" +
+        '<div class="d">' + esc(w.cn || "—") + " · " + lv + (due ? " · <b style='color:#b03a2e'>今天</b>" : "") + "</div></div>" +
+        '<button class="x" data-act="delword" data-w="' + esc(w.word) + '">✕</button></div>';
+    }).join("") + "</div>";
+    return html;
+  }
+
+  function viewMe() {
+    var html = '<div class="h1">我的</div><p class="sub">数据都在这个浏览器里，不上传</p>';
+    html += rankCard();
+    var learned = R.srs.length, words = R.newWordList.length, hist = R.studyHistory.length;
+    html += '<div class="tiles" style="grid-template-columns:1fr 1fr 1fr">' +
+      '<div class="tile"><div class="n">' + learned + '</div><div class="l">学过的句子</div></div>' +
+      '<div class="tile"><div class="n">' + words + '</div><div class="l">生词</div></div>' +
+      '<div class="tile"><div class="n">' + hist + '</div><div class="l">练习记录</div></div>' +
+      "</div>";
+
+    html += '<div class="card"><div style="font-weight:650;font-size:15px;margin-bottom:4px">设置</div>' +
+      '<div class="kv"><span class="k">朗读语速</span><span class="v">' + Number(R.setting.playSpeed).toFixed(1) + "x</span></div>" +
+      '<div class="seg" style="margin-top:6px">' +
+      [0.6, 0.8, 1.0, 1.2, 1.5].map(function (v) {
+        return '<button class="' + (Math.abs(Number(R.setting.playSpeed) - v) < 0.01 ? "on" : "") + '" data-act="speed:' + v + '">' + v.toFixed(1) + "x</button>";
+      }).join("") + "</div>" +
+      '<div class="kv" style="margin-top:14px"><span class="k">刷卡顺序</span><span class="v">' + (R.setting.order === "random" ? "随机" : "顺序") + "</span></div>" +
+      '<div class="seg" style="margin-top:6px">' +
+      '<button class="' + (R.setting.order !== "random" ? "on" : "") + '" data-act="order:order">顺序</button>' +
+      '<button class="' + (R.setting.order === "random" ? "on" : "") + '" data-act="order:random">随机</button>' +
+      "</div></div>";
+
+    html += '<div class="card"><div style="font-weight:650;font-size:15px;margin-bottom:6px">练习历史</div>';
+    if (!R.studyHistory.length) html += '<div class="empty" style="padding:14px 0">还没有记录</div>';
+    else html += R.studyHistory.slice(0, 12).map(function (h) {
+      var t = (h.time || "").replace("T", " ").slice(5, 16);
+      var desc = h.type === "跟读" ? "跟读 " + (h.score || 0) + " 分" : h.type + " " + (h.count || 0) + " 张 · 认识 " + (h.right || 0);
+      return '<div class="kv"><span class="k">' + t + " · " + desc + '</span><span class="v">+' + (h.star || 0) + "★</span></div>";
+    }).join("");
+    html += "</div>";
+
+    html += '<div class="card"><div style="font-weight:650;font-size:15px;margin-bottom:8px">数据</div>' +
+      '<button class="btn alt sm" style="width:100%" data-act="export">导出备份 JSON</button>' +
+      '<label class="btn alt sm" style="width:100%;margin-top:8px;text-align:center;display:block;cursor:pointer">导入备份' +
+      '<input type="file" accept=".json,application/json" id="importFile" style="display:none"></label>' +
+      '<button class="btn alt sm" style="width:100%;margin-top:8px;color:#b03a2e" data-act="reset">清空全部数据</button>' +
+      '<div class="muted" style="margin-top:10px;line-height:1.6">导出的文件和快捷指令版的 my_study_record.json 结构一致，两边可以互相导入。</div></div>';
+    return html;
+  }
+
+  function viewTest() {
+    var t = S.test;
+    if (!t) return viewHome();
+    if (t.done) {
+      var html = '<div class="h1">测试结果</div><p class="sub">只给推荐，不锁难度</p>';
+      html += '<div class="card" style="text-align:center;padding:26px">' +
+        '<div class="muted">推荐起点</div>' +
+        '<div style="font-size:40px;font-weight:750;margin:6px 0">' + t.result + "</div>" +
+        '<div class="muted">' + LEVEL_NAME[t.result] + " · 认识 " + t.right + " / 不认识 " + t.wrong + "</div></div>";
+      html += '<div class="card">' + LEVELS.map(function (l) {
+        var s = t.per[l] || { r: 0, n: 0 };
+        var pct = s.n ? Math.round((s.r / s.n) * 100) : 0;
+        return '<div class="kv"><span class="k">' + l + " " + LEVEL_NAME[l] + '</span><span class="v">' + pct + "%" + (pct >= 70 ? " ✓" : "") + "</span></div>";
+      }).join("") + "</div>";
+      html += '<button class="btn" style="margin-top:12px" data-act="teststart">重新测一次</button>';
+      html += '<button class="btn alt" style="margin-top:10px" data-act="nav:home">开始练习 ' + t.result + "</button>";
+      return html;
+    }
+    var cur = t.queue[t.idx];
+    var html2 = '<div class="fc-top"><button class="x" data-act="nav:home">✕</button>' +
+      '<div class="fc-prog"><i style="width:' + Math.round((t.idx / t.queue.length) * 100) + '%"></i></div>' +
+      '<div class="fc-count">' + (t.idx + 1) + " / " + t.queue.length + "</div></div>";
+    html2 += '<div class="testcard" style="margin-top:10px"><div class="w">' + esc(cur.w) + "</div>" +
+      '<div class="l">认识这个词吗？说出中文意思算认识</div></div>';
+    html2 += '<div class="big2"><button class="no" data-act="tan:0">❌ 不认识</button>' +
+      '<button class="yes" data-act="tan:1">✅ 认识</button></div>';
+    html2 += '<div class="muted" style="text-align:center;margin-top:14px">看到词就能说出意思，才点「认识」</div>';
+    return html2;
+  }
+
+  /* ---------------- render ---------------- */
+  function render() {
+    var app = $("#app");
+    var body = "";
+    if (S.view === "home") body = viewHome();
+    else if (S.view === "flash") body = viewFlash();
+    else if (S.view === "word") body = viewWord();
+    else if (S.view === "summary") body = viewSummary();
+    else if (S.view === "book") body = viewBook();
+    else if (S.view === "me") body = viewMe();
+    else if (S.view === "test") body = viewTest();
+    else body = viewHome();
+    var tabs = ["home", "word", "book", "me"].indexOf(S.view) >= 0 || S.view === "summary";
+    app.innerHTML = '<div class="screen">' + body + "</div>" +
+      (S.view === "flash" || (S.view === "word" && S.deck.length) ? "" : tabs ? tabbar() : "");
+    bind();
+  }
+
+  /* ---------------- bindings ---------------- */
+  function bind() {
+    var fc = $("#fc");
+    if (fc && !S.flip) attachSwipe(fc);
+    var range = $("#scoreRange");
+    if (range) {
+      range.addEventListener("input", function () {
+        S.scoreVal = Number(this.value);
+        var v = $("#scoreVal"); if (v) v.textContent = S.scoreVal;
+        var s = $("#scoreStar");
+        if (s) s.textContent = "★".repeat(starOf(S.scoreVal)) + "☆".repeat(3 - starOf(S.scoreVal));
+      });
+    }
+    var imp = $("#importFile");
+    if (imp) {
+      imp.addEventListener("change", function (e) {
+        var f = e.target.files && e.target.files[0];
+        if (!f) return;
+        var fr = new FileReader();
+        fr.onload = function () {
+          try {
+            var rec = JSON.parse(String(fr.result));
+            if (!rec || !rec.rank) throw new Error("bad");
+            R = Object.assign(blankRecord(), rec);
+            save(); S.view = "home"; render(); toast("已导入");
+          } catch (err) { toast("这个文件不是有效备份"); }
+        };
+        fr.readAsText(f);
+      });
+    }
+  }
+  function attachSwipe(el) {
+    var startX = 0, startY = 0, dx = 0, dy = 0, active = false;
+    el.addEventListener("pointerdown", function (e) {
+      if (e.button && e.button !== 0) return;
+      if (e.target.closest("button,input,label,a,select")) return;
+      active = true; startX = e.clientX; startY = e.clientY; dx = 0; dy = 0;
+      el.classList.add("dragging");
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (!active) return;
+      dx = e.clientX - startX; dy = e.clientY - startY;
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 24) return;
+      el.style.transform = "translateX(" + dx + "px) rotate(" + dx / 42 + "deg)";
+      var r = el.querySelector(".swipe-tag.r"), l = el.querySelector(".swipe-tag.l");
+      if (r) r.style.opacity = Math.max(0, Math.min(1, dx / 90));
+      if (l) l.style.opacity = Math.max(0, Math.min(1, -dx / 90));
+    });
+    var end = function () {
+      if (!active) return;
+      active = false;
+      el.classList.remove("dragging");
+      var r = el.querySelector(".swipe-tag.r"), l = el.querySelector(".swipe-tag.l");
+      if (Math.abs(dx) > 84) { answer(dx > 0); return; }
+      el.style.transform = "";
+      if (r) r.style.opacity = 0;
+      if (l) l.style.opacity = 0;
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { S.flip = true; render(); }
+      dx = 0; dy = 0;
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("pointerleave", function () { if (active) end(); });
+  }
+
+  /* ---------------- actions ---------------- */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-act]");
+    if (!t) return;
+    var act = t.getAttribute("data-act");
+    var i = act.indexOf(":");
+    var name = i >= 0 ? act.slice(0, i) : act;
+    var arg = i >= 0 ? act.slice(i + 1) : "";
+
+    if (name === "nav") {
+      if (arg === "word") { openWord(); return; }
+      S.view = arg; S.flip = false; render(); return;
+    }
+    if (name === "start") { startFlash(arg, "all"); return; }
+    if (name === "startdue") { startFlash(arg, "due"); return; }
+    if (name === "level") { R.meta.lastLevel = arg; save(); render(); return; }
+    if (name === "ok") { answer(true); return; }
+    if (name === "no") { answer(false); return; }
+    if (name === "flip") { S.flip = !S.flip; render(); return; }
+    if (name === "quit") {
+      if (S.sess && (S.sess.right + S.sess.wrong) > 0) {
+        if (!confirm("退出这一局？已记住的进度会保留。")) return;
+      }
+      S.view = "home"; render(); return;
+    }
+    if (name === "undo") {
+      if (!S.undo) return;
+      try {
+        R = JSON.parse(S.undo.rec); S.i = S.undo.i;
+        if (S.sess) { S.sess.right = S.undo.right; S.sess.wrong = S.undo.wrong; }
+        S.undo = null; save(); render(); toast("已撤销");
+      } catch (err) {}
+      return;
+    }
+    if (name === "again") { S.view = "home"; render(); return; }
+    if (name === "speak") { var it = S.deck[S.i]; if (it) speak(itemOf(it).title, false); return; }
+    if (name === "slow") { var it2 = S.deck[S.i]; if (it2) speak(itemOf(it2).title, true); return; }
+    if (name === "speakw") {
+      var it3 = S.deck[S.i]; if (!it3) return;
+      var inf = itemOf(it3);
+      if (inf.words && inf.words.length) speak(inf.words.map(function (w) { return w.word; }).join(", "), true);
+      else speak(inf.title, true);
+      return;
+    }
+    if (name === "recstart") { startRec(); return; }
+    if (name === "recstop") { stopRec(); return; }
+    if (name === "playmine") { playMine(); return; }
+    if (name === "score") { submitScore(); return; }
+    if (name === "speed") { R.setting.playSpeed = Number(arg); save(); render(); return; }
+    if (name === "order") { R.setting.order = arg; save(); render(); return; }
+    if (name === "addword") {
+      var input = $("#newWord");
+      var v = input ? String(input.value || "").trim() : "";
+      if (!v) return toast("先输入一个单词");
+      R.newWordList.push({
+        word: v, phonetic: "", cn: "", fromId: "manual", addedAt: todayStr(),
+        level: 0, nextReview: addDays(1), archived: false, sentence: []
+      });
+      save(); render(); toast("已加入生词本");
+      return;
+    }
+    if (name === "delword") {
+      var w = t.getAttribute("data-w");
+      R.newWordList = R.newWordList.filter(function (x) { return x.word !== w; });
+      save(); render(); return;
+    }
+    if (name === "export") { exportJSON(); return; }
+    if (name === "reset") {
+      if (!confirm("清空所有学习记录？建议先导出备份。")) return;
+      R = blankRecord(); save(); S.view = "home"; render(); toast("已清空");
+      return;
+    }
+    if (name === "teststart" || name === "nav:test") { startTest(); return; }
+    if (name === "tan") { answerTest(arg === "1"); return; }
+  });
+
+  function exportJSON() {
+    var blob = new Blob([JSON.stringify(R, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "my_study_record.json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    toast("已导出，去「文件」里保存");
+  }
+
+  /* ---------------- test ---------------- */
+  function startTest() {
+    var q = [];
+    LEVELS.forEach(function (l) {
+      TEST_WORDS[l].forEach(function (w) { q.push({ l: l, w: w }); });
+    });
+    S.test = { queue: q, idx: 0, per: {}, right: 0, wrong: 0, done: false, result: "L1" };
+    S.view = "test";
+    render();
+  }
+  function answerTest(yes) {
+    var t = S.test;
+    var q = t.queue[t.idx];
+    t.per[q.l] = t.per[q.l] || { r: 0, n: 0 };
+    t.per[q.l].n++;
+    if (yes) { t.per[q.l].r++; t.right++; } else t.wrong++;
+    t.idx++;
+    var finished = t.idx >= t.queue.length;
+    var levelDone = t.idx % 8 === 0 && !finished;
+    if (levelDone) {
+      var done = t.per[q.l];
+      if (done.r / done.n < 0.7) finished = true; // 这一级没过，不用再测更高的
+    }
+    if (finished) {
+      var pass = "L1";
+      for (var i = 0; i < LEVELS.length; i++) {
+        var s = t.per[LEVELS[i]] || { r: 0, n: 1 };
+        var pct = s.n ? s.r / s.n : 0;
+        if (pct >= 0.7) pass = LEVELS[i]; else break;
+      }
+      t.result = pass;
+      t.done = true;
+      R.vocab_test = { lastTestTime: todayStr(), estimateLevel: pass, rightCount: t.right, wrongCount: t.wrong };
+      R.meta.lastLevel = pass;
+      save();
+    }
+    render();
+  }
+
+  /* ---------------- boot ---------------- */
+  var qs = new URLSearchParams(location.search);
+  if (qs.get("reset") === "1") { try { localStorage.removeItem(KEY); } catch (e) {} }
+  R = load();
+  if (!R) {
+    R = qs.get("demo") === "1" ? demoRecord() : blankRecord();
+    save();
+  } else if (qs.get("demo") === "1" && !R.studyHistory.length) {
+    R = demoRecord(); save();
+  }
+  S.order = R.setting.order || "order";
+  window.addEventListener("error", function (e) {
+    var d = document.createElement("div");
+    d.className = "errbar";
+    d.textContent = "JS 错误：" + (e.message || e.error);
+    document.body.appendChild(d);
+  });
+  if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = function () { voiceCache = null; };
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {});
+
+  render();
+  var hash = (location.hash || "").replace("#", "");
+  if (hash) {
+    if (hash === "test") startTest();
+    else if (hash === "flash") startFlash(R.meta.lastLevel || "L1", "all");
+    else if (hash === "flashd") { startFlash(R.meta.lastLevel || "L1", "all"); S.flip = true; render(); }
+    else if (hash === "word") openWord();
+    else if (["home", "book", "me"].indexOf(hash) >= 0) { S.view = hash; render(); }
+  }
+  setTimeout(function () { pickVoice(); }, 300);
+})();
+</script>
+</body>
+</html>
